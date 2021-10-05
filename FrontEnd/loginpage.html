@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<link rel="stylesheet" href="styles.css"/>
+	<title>WymienKsiazke</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+</head>
+<body>
+	<header>
+		<div id="logo-image">
+			<img src="images/logo-gora.png" alt="Strona główna" height="90px" width="400px">
+		</div>
+		<div class="searchbox">
+			<input id="sbar" type="text" name="searchbox" placeholder="Szukaj książki">
+			<a class="search-loop" href="#"><i class="fas fa-search"></i></a>
+		</div>
+		<div id="login-panel">
+			<a href="#" class="loginlink">
+				<div class="login-button">Zaloguj się</div>
+			</a>
+			<a href="#" class="loginlink">
+				<div class="login-button">Zarejestruj się</div>
+			</a>
+		</div>
+		<div style="clear: both;"></div>
+		<div class="menu-bar">
+			<div class="menu-bar-button">Dodaj ogłoszenie</div>
+			<div class="menu-bar-button">Znajdź książki</div>
+			<div class="menu-bar-button">Recenzje książek</div>
+			<div class="menu-bar-button" id="menulastbutton">Dla ciebie</div>
+		</div>
+	</header>
+	<div style="clear: both;"></div>
+	<div id="maincontainer">
+	<div id="mainwindow">
+		<!---->
+		<div class="loginpanel">
+			<div class="loginheader"><h1>Logowanie</h1></div>
+			<form method="login">
+				<div class="login-textfield">
+					<input type="text" required>
+					<span></span>
+					<label>Email</label>
+				</div>
+				<div class="login-textfield">
+					<input type="password" required>
+					<span></span>
+					<label>Hasło</label>
+				</div>
+				<div class="forgotpasswordinfo">Zapomniałeś hasła?</div>
+				<input type="submit" value="Zaloguj">
+				<div class="signup-link">
+					Nie masz konta? <a href="#">Zarejestruj się!</a>
+				</div>
+			</form>
+		</div>
+		<footer>
+			<div id="footersitecontainer">
+				<div id="footersitename">WymienKsiazke.pl</div>
+			</div>
+			<div id="footersiteinfocontainer">
+				<div id="footersiteinfo">
+					WymienKsiazke.pl to darmowy serwis do wymiany lub sprzedaży książek. Jeśli masz książkę, którą chcesz sprzedać lub
+					wymienić za inna książkę to w łatwy sposób możesz na naszej stronie zamieścić takie ogłoszenie. Znajdziesz u nas
+					książki z przeróżnych kategorii w najbliższej okolicy. Na naszej stronie również możesz czytać opinie innych użytkowników
+					na temat danej książki oraz sam dzielić się swoim zdaniem. Dowiedz się więcej wchodząc w regulamin strony!
+				</div>
+			</div>
+			<div id="footerinfo">
+				<div style="font-size: 18px;">Dołącz do nas:</div>
+				<div id="footersocialmediacontainer">
+					<a href="#"><div id="facebook"><i class="fab fa-facebook-f" style="color: white;"></div></i></a>
+					<a href="#"><div id="instagram"><i class="fab fa-instagram"></i></div></a>
+					<a href="#"><div id="twitter"><i class="fab fa-twitter"></i></div></a>
+				</div>
+			</div>
+			<div id="footermenu">
+				
+			</div>
+			<div id="footerendbar">WymienKsiazke.pl - serwis do wymiany/sprzedaży książek. Wszelkie prawa zastrzeżone &copy </div>
+		</footer>
+	</div>
+	</div>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="script.js"></script>
+</body>
+</html>
