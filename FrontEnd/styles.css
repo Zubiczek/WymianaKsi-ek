@@ -548,3 +548,53 @@ input[type="submit"]:hover
 	float: left;
 	margin-left: 5px;
 }
+.userwindow
+{
+	text-align: left;
+	font-size: 18px;
+	padding: 10px;
+}
+.userprofile-image
+{
+	float: left;
+}
+.userprofile-info
+{
+	float: left;
+}
+.userprofile-image img
+{
+	border-radius: 50%;
+}
+.userprofile-info
+{
+	margin-left: 40px;
+}
+.userprofile-data
+{
+	font-size: 25px;
+	margin-top: 10px;
+}
+.userprofile-data h2
+{
+	display: inline;
+	text-decoration: underline;
+}
+.myprofile-menu a
+{
+	text-decoration: none;
+}
+.myprofilemenu-option
+{
+	color: #6495ED;
+	margin-top: 10px;
+}
+.myprofile-useroffers
+{
+	text-align: center;
+	font-size: 20px;
+}
+.myprofile-useroffers-header
+{
+	margin-top: 50px;
+}
