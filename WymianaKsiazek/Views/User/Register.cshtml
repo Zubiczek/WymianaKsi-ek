@@ -1,0 +1,195 @@
+﻿<div class="loginpanel">
+    <div class="loginheader"><h1>Rejestracja</h1></div>
+    <form asp-controller="User" asp-action="SignUpUser" method="post" id="signupform" role="form" autocomplete="off">
+    <div class="login-textfield">
+        <input type="text" id="emailinput" name="emailinput" required>
+        <span></span>
+        <label>Email<img src="~/images/ok.jpg" class="ok-image" id="email-ok-image"></label>
+    </div>
+    <span id="emailerror" class="errorfield"></span>
+    <div class="login-textfield">
+        <input type="text" id="usernameinput" name="usernameinput" required>
+        <label>Nazwa użytkownika<img src="~/images/ok.jpg" class="ok-image" id="username-ok-image"></label>
+    </div>
+    <span id="usernameerror" class="errorfield"></span>
+    <div class="login-textfield" id="cityinput">
+        <input type="text" name="cityinput" required>
+        <span></span>
+        <label>Miasto</label>
+    </div>
+    <div class="login-textfield">
+        <input type="password" id="passwordinput" name="passwordinput" required>
+        <span></span>
+        <label>Hasło<img src="~/images/ok.jpg" class="ok-image" id="password-ok-image"></label>
+    </div>
+    <span id="passworderror" class="errorfield"></span>
+    <div class="login-textfield">
+        <input type="password" id="password2input" name="password2input" required>
+        <span></span>
+        <label>Powtórz Hasło<img src="~/images/ok.jpg" class="ok-image" id="password2-ok-image"></label>
+    </div>
+    <span id="password2error" class="errorfield"></span>
+    <div class="rules-checkbox">
+        <input type="checkbox" id="rules-accept-checkbox" onclick="checkboxClick()">
+        Akceptuję regulamin
+        <div style="clear: both;"></div>
+        <span id="rules-checkbox-error" class="errorfield"></span>
+    </div>
+    <div class="errorfield" runat="server">
+        @if(ViewBag.ExistingUserError != null)
+        {
+            <p>@ViewBag.ExistingUserError</p>
+        }
+    </div>
+    <input type="submit" value="Zarejestruj">
+    <div class="signup-link">
+        Masz już konto? <a asp-action="Login" asp-controller="User">Zaloguj się!</a>
+    </div>
+    </form>
+    <script>
+        const form = document.querySelector('#signupform');
+
+        const format = /[ `!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+        const emailformat = /[ `!#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+        const emailformat2 = /@@/;
+        const passwordformat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+
+        let username = form.elements.namedItem("usernameinput");
+        let email = form.elements.namedItem("emailinput");
+        let password = form.elements.namedItem("passwordinput");
+        let password2 = form.elements.namedItem("password2input");
+        let isitvalidemail = true;
+        let isitvalidusername = true;
+        let isitvalidpassword = true;
+        let isitvalidpassword2 = true;
+
+        username.addEventListener('input', validate);
+        email.addEventListener('input', validate);
+        password.addEventListener('input', validate);
+        password2.addEventListener('input', validate);
+
+        function validate(e) {
+            let target = e.target;
+            if (target.name == "emailinput") {
+                let emailvalue = target.value;
+                $('#email-ok-image').css("display", "none");
+                if (emailvalue.length == 0) {
+                    $('#emailerror').text("Pole nie może być puste");
+                    isitvalidemail = true;
+                }
+                else if (emailvalue.length < 10) {
+                    $('#emailerror').text("Email musi zawierać conajmniej 10 znaków");
+                    isitvalidemail = true;
+                }
+                else if (emailvalue.length > 30) {
+                    $('#emailerror').text("Email może zawierać conajwyżej 30 znaków");
+                    isitvalidemail = true;
+                }
+                else if (emailformat.test(emailvalue)) {
+                    $('#emailerror').text("Email zawiera niedozwolone znaki");
+                    isitvalidemail = true;
+                }
+                else if (!emailformat2.test(emailvalue)) {
+                    $('#emailerror').text("Email zawiera niepoprawny format");
+                }
+                else {
+                    $('#emailerror').text("");
+                    $('#email-ok-image').css("display", "inline");
+                    isitvalidemail = false;
+                }
+            }
+            else if (target.name == "usernameinput") {
+                let usernamevalue = target.value;
+                $('#username-ok-image').css("display", "none");
+                if (usernamevalue.length == 0) {
+                    $('#usernameerror').text("Pole nie może być puste");
+                    isitvalidusername = true;
+                }
+                else if (usernamevalue.length < 5) {
+                    $('#usernameerror').text("Nazwa użytkownika musi zawierać conajmniej 5 znaków");
+                    isitvalidusername = true;
+                }
+                else if (usernamevalue.length > 15) {
+                    $('#usernameerror').text("Nazwa użytkownika może zawierać conajwyżej 15 znaków");
+                    isitvalidusername = true;
+                }
+                else if (format.test(usernamevalue)) {
+                    $('#usernameerror').text("Nazwa użytkownika zawiera niedozwolone znaki");
+                    isitvalidusername = true;
+                }
+                else {
+                    $('#usernameerror').text("");
+                    $('#username-ok-image').css("display", "inline");
+                    isitvalidusername = false;
+                }
+            }
+            else if (target.name == "passwordinput") {
+                let passwordvalue = target.value;
+                $('#password-ok-image').css("display", "none");
+                if (passwordvalue.length == 0) {
+                    $('#passworderror').text("Pole nie może być puste");
+                    isitvalidpassword = true;
+                }
+                else if (passwordvalue.length < 10) {
+                    $('#passworderror').text("Hasło musi zawierać conajmniej 10 znaków");
+                    isitvalidpassword = true;
+                }
+                else if (passwordvalue.length > 25) {
+                    $('#passworderror').text("Hasło może zawierać conajwyżej 25 znaków");
+                    isitvalidpassword = true;
+                }
+                else if (!passwordformat.test(passwordvalue)) {
+                    $('#passworderror').text("Hasło musi zawierać 1 dużą literę, małą literę oraz cyfrę");
+                    isitvalidpassword = true;
+                }
+                else {
+                    $('#passworderror').text("");
+                    $('#password-ok-image').css("display", "inline");
+                    isitvalidpassword = false;
+                }
+            }
+            else if (target.name == "password2input") {
+                let password2value = target.value;
+                let passwd = $('#passwordinput').val();
+                $('#password2-ok-image').css("display", "none");
+                if (password2value.length == 0) {
+                    $('#password2error').text("Pole nie może być puste");
+                    isitvalidpassword2 = true;
+                }
+                else if (password2value != passwd) {
+                    $('#password2error').text("Hasła nie zgadzają się");
+                    isitvalidpassword2 = true;
+                }
+                else {
+                    $('#password2error').text("");
+                    $('#password2-ok-image').css("display", "inline");
+                    isitvalidpassword2 = false;
+                }
+            }
+        }
+
+        function checkboxClick() {
+            let checkBox = $('#rules-accept-checkbox')[0];
+            if (checkBox.checked == true) {
+                $('#rules-checkbox-error').text("");
+            }
+            else {
+                $('#rules-checkbox-error').text("Wymagana akceptacja regulaminu!");
+            }
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            let checkBox = $('#rules-accept-checkbox')[0];
+            if (isitvalidemail == false && isitvalidusername == false && isitvalidpassword == false && isitvalidpassword2 == false && checkBox.checked == true) {
+                form.submit();
+            }
+            else if (checkBox.checked == false) {
+                $('#rules-checkbox-error').text("Wymagana akceptacja regulaminu!");
+            }
+            else {
+                alert('nie jest git');
+            }
+        });
+    </script>
+</div>

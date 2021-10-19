@@ -1,0 +1,26 @@
+﻿<div class="loginpanel">
+    <div class="loginheader"><h1>Logowanie</h1></div>
+    <form asp-action="LogIn" asp-controller="User" method="post" role="form" autocomplete="off">
+        <div class="login-textfield">
+            <input type="text" name="email" required>
+            <span></span>
+            <label>Email</label>
+        </div>
+        <div class="login-textfield">
+            <input type="password" name="password" required>
+            <span></span>
+            <label>Hasło</label>
+        </div>
+        <div class="errorfield">
+            @if(ViewBag.LoginError != null)
+            {
+                <p>@ViewBag.LoginError</p>
+            }
+        </div>
+        <div class="forgotpasswordinfo">Zapomniałeś hasła?</div>
+        <input type="submit" value="Zaloguj">
+        <div class="signup-link">
+            Nie masz konta? <a asp-action="Register" asp-controller="User">Zarejestruj się!</a>
+        </div>
+    </form>
+</div>
