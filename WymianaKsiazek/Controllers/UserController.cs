@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +22,7 @@ using WymianaKsiazek.Models;
 using Microsoft.AspNetCore.Http;
 using WymianaKsiazek.Queries.UserQueries;
 using WymianaKsiazek.Models.EmailModels;
+using System.Dynamic;
 
 namespace WymianaKsiazek.Controllers
 {
@@ -47,8 +48,9 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult Register()
         {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
-            if (IsUserLoggedIn() == true)
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin == true)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -58,8 +60,9 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult Login()
         {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
-            if (IsUserLoggedIn() == true)
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin == true)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -69,19 +72,22 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult EmailConfirmationPage(string email)
         {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
             ViewBag.Email = email;
             return View();
         }
         public IActionResult EmailConfirmedPage()
         {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
             return View();
         }
         public IActionResult MyProfile()
         {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
-            if (IsUserLoggedIn() == false)
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin == false)
             {
                 return RedirectToAction("Login", "User");
             }
@@ -95,7 +101,117 @@ namespace WymianaKsiazek.Controllers
             {
                 return RedirectToAction("Error", "Home");
             }
+            ViewBag.ChangeInfo = TempData["ChangeInfo"];
+            var userlikedoffers = _userQueries.GetUsersLikedOffers(userid);
+            dynamic model = new ExpandoObject();
+            model.Profile = user;
+            model.LikedOffers = userlikedoffers;
+            TempData["ChangeInfo"] = null;
+            return View(model);
+        }
+        public IActionResult ForgotPassword()
+        {
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            ViewBag.Error = TempData["ForgotPasswordError"];
+            TempData["ForgotPasswordError"] = null;
+            return View();
+        }
+        public IActionResult ForgotPasswordInformation(string email)
+        {
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            ViewBag.Email = email;
+            return View();
+        }
+        public IActionResult ResetPassword(string userId, string token)
+        {
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (userId == null || token == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            ViewBag.UserId = userId;
+            return View();
+        }
+        public IActionResult ChangePassword()
+        {
+            bool isuerloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (IsUserLoggedIn() == false)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            ViewBag.Error = TempData["PasswordError"];
+            TempData["PasswordError"] = null;
+            return View();
+        }
+        public IActionResult Profile(string id)
+        {
+            var user = _userQueries.GetUserProfile(id);
+            if(user == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            bool isuserloggedin = IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuserloggedin;
+            if(isuserloggedin == true)
+            {
+                string userid = GetUserId();
+                if(userid == null)
+                {
+                    return RedirectToAction("Error", "Home");
+                }
+                ViewBag.UserOpinion = _userQueries.GetUserOpinionAboutUser(id, userid);
+            }
             return View(user);
+        }
+        public async Task<IActionResult> Chat(long id)
+        {
+            bool isuserloggedin = IsUserLoggedIn();
+            if (!isuserloggedin) return RedirectToAction("Login", "User");
+            var user = await _userQueries.GetUserById(GetUserId());
+            if (user == null) return RedirectToAction("Error", "Home");
+            var conversation = _userQueries.GetConversationById(id);
+            if(conversation == null) return RedirectToAction("Error", "Home");
+            if(user.Id != conversation.User1.Id && user.Id != conversation.User2.Id) return RedirectToAction("Error", "Home");
+            ViewBag.MyId = user.Id;
+            return View(conversation);
+        }
+        public async Task<IActionResult> SendMessage(string text, string convid)
+        {
+            if(text == null || text == "") return BadRequest();
+            if(!IsUserLoggedIn()) return BadRequest();
+            string userid = GetUserId();
+            if(userid == null || userid == "") return BadRequest();
+            long conv_id = (long)Convert.ToDouble(convid);
+            await _userQueries.CreateMessage(conv_id, text, userid);
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddOpinionAboutUser(int value, string opinionid)
+        {
+            long opinion_id = (long)Convert.ToDouble(opinionid);
+            if(IsUserLoggedIn() == false)
+            {
+                return Json(new { success = false, responseText = "Unauthorized!" });
+            }
+            else
+            {
+                string userid = GetUserId();
+                if (userid == null || userid == "")
+                {
+                    return Json(new { success = false, responseText = "Server Error!" });
+                }
+                await _userQueries.AddUserOpinionAboutUser(value, opinion_id, userid);
+                return Json(new { success = true });
+            }
         }
         [AllowAnonymous]
         [HttpPost]
@@ -184,6 +300,60 @@ namespace WymianaKsiazek.Controllers
                 HttpContext.Session.Remove("RefreshToken");
                 return RedirectToAction("Index", "Home");
             }
+        }
+        public async Task<IActionResult> ForgotPasswordSendEmail(string emailinput, string usernameinput)
+        {
+            var user = await _userManager.FindByEmailAsync(emailinput);
+            if(user == null)
+            {
+                TempData["ForgotPasswordError"] = "Nie istnieje konto o podanym adresie e-mail";
+                return RedirectToAction("ForgotPassword", "User");
+            }
+            if(user.UserName != usernameinput)
+            {
+                TempData["ForgotPasswordError"] = "Nieprawidłowa nazwa użytkownika!";
+                return RedirectToAction("ForgotPassword", "User");
+            }
+            await _userQueries.SendEmailResetPassword(user);
+            return RedirectToAction("ForgotPasswordInformation", "User", new { email = emailinput});
+        }
+        public async Task<IActionResult> ResetChangePassword(string userid, string passwordinput)
+        {
+            if (userid == null || passwordinput == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            var user = await _userManager.FindByIdAsync(userid);
+            if(user == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            await _userQueries.ChangePassword(user, passwordinput);
+            return RedirectToAction("Login", "User");
+        }
+        public async Task<IActionResult> ChangeCurrentPassword(string oldpasswordinput, string passwordinput)
+        {
+            if(oldpasswordinput == null || passwordinput == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            string userid = GetUserId();
+            if(userid == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            int result = await _userQueries.ChangeCurrentPassword(userid, oldpasswordinput, passwordinput);
+            if(result == 1)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            else if(result == 2)
+            {
+                TempData["PasswordError"] = "Nieprawidłowe hasło!";
+                return RedirectToAction("ChangePassword", "User");
+            }
+            TempData["ChangeInfo"] = "Hasło zmienione pomyślnie!";
+            return RedirectToAction("MyProfile", "User");
         }
         private bool IsUserLoggedIn()
         {
