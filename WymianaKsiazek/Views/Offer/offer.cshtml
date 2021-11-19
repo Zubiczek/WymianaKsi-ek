@@ -1,0 +1,182 @@
+@using WymianaKsiazek.Models.MapperModels;
+@model OfferMP
+<div id="offerbyid-window">
+    <div id="offerbyid-image">
+        <img src="~/images/@Model.Image" height="385px" width="385px">
+    </div>
+    <div id="offerbyid-user-window">
+        <div style="padding-top: 20px;">Użytkownik</div>
+        <div id="user-profile-window">
+            <div id="user-profile-image">
+                <img src="~/images/user.png" class="offerby-id-user-image">
+            </div>
+            <div id="user-profile-info-window">
+                <div id="user-profile-nickname">@Model.User.UserName</div>
+                <div class="user-profile-info">Konto od 26 maj 2021</div>
+            </div>
+            <div style="clear: both;"></div>
+            <div id="user-profile-opinions-window">
+                <div>Ogólna opinia o użytkowniku</div>
+                <div id="user-profile-star-opinions-window">
+                    @{
+                        uint averageopinion = Model.User.UserOpinion.AverageOpinion();
+                        uint rest = 5 - averageopinion;
+                    }
+                    @for (uint j = 0; j < averageopinion; j++)
+                    {
+                        <div class="user-opinions-stars" style="color: orange;"><i class="fas fa-star"></i></div>
+                    }
+                    @for (uint j = 0; j < rest; j++)
+                    {
+                        <div class="user-opinions-stars"><i class="far fa-star"></i></div>
+                    }
+                    <div style="clear: both;"></div>
+                </div>
+            </div>
+            <div id="user-profile-options-window">
+                <div class="user-profile-option-button">Wyślij wiadomość</div>
+                <a asp-action="Profile" asp-controller="User" asp-route-id="@Model.User.Id"><div class="user-profile-option-button">Zobacz profil</div></a>
+                <div style="clear: both;"></div>
+            </div>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+    <div style="text-align: center; margin-top: 30px;">
+        <div id="offerbyid-info-window">
+            <div id="offerbyid-info-date">
+                Dodano @Model.CreatedOn.ToString("dddd, dd MMMM yyyy - HH:mm")
+                @if (ViewBag.IsUserLoggedIn == true)
+                {
+                    if (ViewBag.IsOfferLikedByUser == true)
+                    {
+                        <div id="offerbyid-follow-unlike" onclick="DeleteFromFavourite()"><i class="fas fa-heart"></i></div>
+                    }
+                    else
+                    {
+                        <div id="offerbyid-follow" onclick="AddToFavourite()"><i class="fas fa-heart"></i></div>
+                    }
+                }
+                else
+                {
+                    <div id="offerbyid-follow"><i class="fas fa-heart"></i></div>
+                }
+            </div>
+            <div id="offerbyid-info-title">@Model.Book.Title</div>
+            <div id="offerbyid-info-author">@Model.Book.Author</div>
+            <div id="offerbyid-book-options">
+                <a href="@Url.Action("Reviews", "Book", new { author = Model.Book.Author, title = Model.Book.Title})"><div class="classicbutton">Zobacz recenzje o tej książce</div></a>
+                <a href="@Url.Action("search", "Offer", new { title = Model.Book.Title, author = Model.Book.Author})"><div class="classicbutton">Zobacz inne oferty z tą ksiązką</div></a>
+            </div>
+            <div class="offerbyid-info-sale">
+                @if(Model.ForSale == true)
+                {
+                    <p>Sprzedaż</p>
+                }
+                else
+                {
+                    <p>Wymiana</p>
+                }
+            </div>
+            <div class="offerbyid-info-sale" style="margin-left: 10px; color: red;">@Model.Price zł</div>
+            <div style="clear: both;"></div>
+            <div id="offerbyid-info-city"><i class="fas fa-map-marker-alt"></i> @Model.Address.Name</div>
+            <div id="offerbyid-info-description"><h2 style="margin-bottom: 10px;">Opis</h2>@Model.Content</div>
+            <div class="offer-report-header">Zgłoś <i class="far fa-flag"></i></div>
+        </div>
+    </div>
+    <script>
+        var canusebutton = true;
+        function AddToFavourite() {
+            if (canusebutton == true) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("LikeOffer", "Offer")',
+                    data: { "offerid": @Model.Offer_Id },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#offerbyid-follow').html('<i class="fas fa-heart" style="color: red;"></i>');
+                            canusebutton = false;
+                        }
+                        else {
+                            alert("Coś poszło nie tak! Kod: " + response.responseText);
+                        }
+                    },
+                    failure: function (response) {
+                        alert("Fail " + response.responseText);
+                    },
+                    error: function (response) {
+                        alert("Error " + response.responseText);
+                    }
+                });
+            }
+        }
+        function DeleteFromFavourite() {
+            if (canusebutton == true) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("UnLikeOffer", "Offer")',
+                    data: { "offerid": @Model.Offer_Id },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#offerbyid-follow-unlike').html('<i class="fas fa-heart" style="color: black;"></i>');
+                            canusebutton = false;
+                        }
+                        else {
+                            alert("Coś poszło nie tak! Kod: " + response.responseText);
+                        }
+                    },
+                    failure: function (response) {
+                        alert("Fail " + response.responseText);
+                    },
+                    error: function (response) {
+                        alert("Error " + response.responseText);
+                    }
+                });
+            }
+        }
+    </script>
+    <div style="text-align: center; margin-top: 30px;">
+        <div id="offerbyid-comments-window">
+            <h2>Komentarze</h2>
+            <div id="offerbyid-addcomment-window">
+                <form autocomplete="off" id="addcommentform">
+                    <input class="writecommentinput" id="addcommentinput" name="addcommentinput" placeholder="Napisz komentarz...">
+                </form>
+            </div>
+            <div id="offerbyid-comments">
+                <div class="offerbyid-comment">
+                    <div class="user-image-comment">
+                        <img src="images/user.png" class="usercommentimage">
+                        <div class="comment-user-nickname">Zubiczek</div>
+                    </div>
+                    <div class="comment-content">
+                        Polecam oferty od tego użytkownika
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="offerbyid-comment">
+                    <div class="user-image-comment">
+                        <img src="images/user.png" class="usercommentimage">
+                        <div class="comment-user-nickname">Zubiczek</div>
+                    </div>
+                    <div class="comment-content">
+                        Polecam oferty od tego użytkownika
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="offerbyid-comment">
+                    <div class="user-image-comment">
+                        <img src="images/user.png" class="usercommentimage">
+                        <div class="comment-user-nickname">Zubiczek</div>
+                    </div>
+                    <div class="comment-content">
+                        Polecam oferty od tego użytkownika
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="showsmorecommentsbutton">Pokaż więcej</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="height: 50px; background: rgb(199, 229, 241);"></div>
