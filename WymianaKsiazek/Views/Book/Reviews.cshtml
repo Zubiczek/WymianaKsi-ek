@@ -1,0 +1,142 @@
+﻿@using WymianaKsiazek.Models.MapperModels;
+@model List<BookReviewsList>
+<div style="height: 10px;"></div>
+<div class="searchfields">
+    <form autocomplete="off" asp-action="Reviews" asp-controller="Book" method="get" data-ajax="true" data-ajax-method="get" data-ajax-update="#books-window-panel" data-ajax-mode="replace" data-ajax-url="@Url.Action("GetPartialBookSearchView", "Book")">
+        <div class="searchfield">
+            <div style="float: left;"><i class="fas fa-book"></i></div>
+            <input type="text" id="inputsearchtitlebooks" class="searchfieldbox" name="inputsearchtitlebooks" placeholder="Tytuł" autocomplete="off">
+            <div style="clear: both;"></div>
+        </div>
+        <div class="searchfield">
+            <div style="float: left;"><i class="fas fa-user"></i></div>
+            <input type="text" id="inputsearchauthorbook" class="searchfieldbox" name="inputsearchauthorbook" placeholder="Autor" autocomplete="off">
+            <div style="clear: both;"></div>
+        </div>
+        <div id="searchfieldwithbutton">
+            <input type="submit" value="Szukaj" class="searchsubmit">
+        </div>
+        <div style="clear: both;"></div>
+    </form>
+</div>
+<div class="searchpagefilterswindow-book">
+    <div class="searchpagefilterheader"><h2>Filtry</h2></div>
+    <form autocomplete="off" asp-action="Reviews" asp-controller="Book" method="get" data-ajax="true" data-ajax-method="get" data-ajax-update="#books-window-panel" data-ajax-mode="replace" data-ajax-url="@Url.Action("GetPartialBookSearchFilterView", "Book")">
+        <div class="searchpagecategory" id="categorychoice" onclick="showDropdownList()">
+            <div>Kategoria <i class="fas fa-book"></i></div>
+            <div class="searchpagecategoryfilter" id="categoryfiltervalue" style="border-right: 1px solid #A9A9A9; width: 190px;">
+                Dowolna kategoria
+            </div>
+            <div class="searchpagecategoryfilter"><i class="fas fa-arrow-down"></i></div>
+            <div style="clear: both;"></div>
+            <div id="dropdowncategorylist" class="dropdown-content">
+                <p onclick="setCategoryValue(0, 'Dowolna kategoria')">Dowolna kategoria</p>
+                <p onclick="setCategoryValue(1, 'Literatura')">Literatura</p>
+                <p onclick="setCategoryValue(2, 'Kryminał, Thriller')">Kryminał, Thriller</p>
+                <p onclick="setCategoryValue(3, 'Fantasy, Sciene Fiction')">Fantasy, Sciene Fiction</p>
+                <p onclick="setCategoryValue(4, 'Horror')">Horror</p>
+                <p onclick="setCategoryValue(5, 'Romanse')">Romanse</p>
+                <p onclick="setCategoryValue(6, 'Lektury')">Lektury</p>
+                <p onclick="setCategoryValue(7, 'Inne')">Inne</p>
+            </div>
+            <input type="hidden" value=0 id="inputcategoryid" name="inputcategoryid">
+        </div>
+        <div style="clear: both;"></div>
+        <div class="searchpagechecboxfield">
+            <input type="checkbox" id="book-chbox1" onclick="changeCheckboxes(this)" checked>
+            Dowolne recenzje
+        </div>
+        <div class="searchpagechecboxfield" style="margin-left: 20px;">
+            <input type="checkbox" id="book-chboxmostpopular" onclick="changeCheckboxes(this)">
+            Najpopularniejsze
+        </div>
+        <div class="searchpagechecboxfield" style="margin-left: 20px;">
+            <input type="checkbox" id="book-chboxmostrated" onclick="changeCheckboxes(this)">
+            Najwyżej oceniane
+        </div>
+        <div style="clear: both;"></div>
+        <input type="hidden" value=2 id="inputtype" name="inputtype">
+        <script>
+            function changeCheckboxes(checkbox) {
+                let checkbox1 = $('#book-chbox1')[0];
+                let checkbox2 = $('#book-chboxmostpopular')[0];
+                let checkbox3 = $('#book-chboxmostrated')[0];
+                checkbox1.checked = false;
+                checkbox2.checked = false;
+                checkbox3.checked = false;
+                checkbox.checked = true;
+                if ($(checkbox).attr('id') == "book-chbox1") {
+                    $('#inputtype').val(2);
+                }
+                else if ($(checkbox).attr('id') == "book-chboxmostpopular") {
+                    $('#inputtype').val(1);
+                }
+                else if ($(checkbox).attr('id') == "book-chboxmostrated") {
+                    $('#inputtype').val(0);
+                }
+            }
+            var categorylistisdropped = false;
+            function showDropdownList() {
+                if (categorylistisdropped == false) {
+                    $('#dropdowncategorylist').css('display', 'block');
+                    categorylistisdropped = true;
+                }
+                else {
+                    $('#dropdowncategorylist').css('display', 'none');
+                    categorylistisdropped = false;
+                }
+            }
+            function setCategoryValue(id, categoryname) {
+                $('#categoryfiltervalue').text(categoryname);
+                $('#inputcategoryid').val(id);
+            }
+        </script>
+        <div style="text-align: center; margin-top: 10px;">
+            <input type="submit" value="Szukaj" class="searchsubmitfilter">
+            <div style="height: 10px;"></div>
+        </div>
+    </form>
+</div>
+<div style="height: 30px;"></div>
+<form asp-action="Reviews" asp-controller="Book" method="get" data-ajax="true" data-ajax-method="get" data-ajax-update="#searchedofferspanel" data-ajax-mode="replace" data-ajax-url="@Url.Action("ClearFilters", "Book")">
+    <input type="submit" value="Czyść filtry" class="searchsubmitfilter">
+</form>
+<h2>Wszystkie recenzje</h2>
+<div class="books-window" id="books-window-panel">
+    @foreach (var i in Model)
+    {
+        <div class="book-info-window">
+            <div class="book-image-div">
+                <img src="~/images/BookImages/@i.Img" class="book-info-image">
+            </div>
+            <div class="book-moreinfo-window">
+                <div class="book-moreinfo-title">@i.Title</div>
+                <div class="book-moreinfo-author">@i.Author</div>
+                <div class="book-moreinfo-averageopinion-window">
+                    <div>Średnia ocena</div>
+                    <div style="display: inline-block;">
+                        @{
+                            uint averageopinion = i.Opinion.AverageOpinion();
+                            uint rest = 5 - averageopinion;
+                        }
+                        @for (uint j = 0; j < averageopinion; j++)
+                        {
+                            <div class="user-opinions-stars" style="color: orange;"><i class="fas fa-star"></i></div>
+                        }
+                        @for (uint j = 0; j < rest; j++)
+                        {
+                            <div class="user-opinions-stars"><i class="far fa-star"></i></div>
+                        }
+                        <div style="clear: both;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="book-seemoredetails-button-window">
+                <a asp-action="book" asp-controller="Book" asp-route-id="@i.Book_Id"><div class="classicbutton">Więcej szczegółów</div></a>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+    }
+    <div class="seealloffersbutton"><button class="moreoffersbutton">Zobacz wszystkie</button></div>
+</div>
+<div style="height: 50px;"></div>
