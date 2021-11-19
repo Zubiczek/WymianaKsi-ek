@@ -1,4 +1,4 @@
-﻿<!DOCTYPE HTML>
+<!DOCTYPE HTML>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -10,9 +10,11 @@
 </head>
 <body>
     <header>
-        <div id="logo-image">
-            <img src="~/images/logo-gora.png" alt="Strona główna" height="90px" width="400px">
-        </div>
+        <a asp-action="Index" asp-controller="Home">
+            <div id="logo-image">
+                <img src="~/images/logo-gora.png" alt="Strona główna" height="90px" width="400px">
+            </div>
+        </a>
         <div class="searchbox">
             <input id="sbar" type="text" name="searchbox" placeholder="Szukaj książki">
             <a class="search-loop" href="#"><i class="fas fa-search"></i></a>
@@ -37,10 +39,10 @@
                     <div style="clear: both;"></div>
                 </div>
                 <div class="sign-out-div">
-					<i class="fas fa-sign-out-alt" style="float: left;"></i>
-					<div class="sign-out-header"><a asp-action="LogOut" asp-controller="User" style="color: white;">Wyloguj</a></div>
-					<div style="clear: both;"></div>
-				</div>
+                    <i class="fas fa-sign-out-alt" style="float: left;"></i>
+                    <div class="sign-out-header"><a asp-action="LogOut" asp-controller="User" style="color: white;">Wyloguj</a></div>
+                    <div style="clear: both;"></div>
+                </div>
                 <a asp-action="MyProfile" asp-controller="User">
                     <div class="user">
                         <div class="user-image"><img src="~/images/user.png" height="30px" width="30px"></div>
@@ -50,14 +52,14 @@
                     </div>
                     <div style="clear: both;"></div>
                 </a>
-</div>
+            </div>
         }
         <div style="clear: both;"></div>
         <div class="menu-bar">
-            <div class="menu-bar-button">Dodaj ogłoszenie</div>
-            <div class="menu-bar-button">Znajdź książki</div>
-            <div class="menu-bar-button">Recenzje książek</div>
-            <div class="menu-bar-button" id="menulastbutton">Dla ciebie</div>
+            <a asp-action="AddOffer" asp-controller="Offer"><div class="menu-bar-button">Dodaj ogłoszenie</div></a>
+            <a asp-action="search" asp-controller="Offer"><div class="menu-bar-button">Znajdź książki</div></a>
+            <a asp-action="Reviews" asp-controller="Book"><div class="menu-bar-button">Recenzje książek</div></a>
+            <a asp-action="Index" asp-controller="Home"><div class="menu-bar-button" id="menulastbutton">Strona główna</div></a>
         </div>
     </header>
     <div style="clear: both;"></div>
@@ -97,5 +99,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
 </body>
 </html>
