@@ -24,17 +24,22 @@ namespace WymianaKsiazek.Database
         public DbSet<OfferCommentsEntity> OfferComments { get; set; }
         public DbSet<UserBookOpinion> UserBookOpinions { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
+        public DbSet<UserOpinionsEntity> UserOpinions { get; set; }
+        public DbSet<UserUserOpinionEntity> UserOpinionInfo { get; set; }
+        public DbSet<UserLikedOffersEntity> UserLikedOffers { get; set; }
+        public DbSet<ConversationEntity> Conversations { get; set; }
+        public DbSet<MessageEntity> Messages { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
             //OfferEntity
             builder.Entity<OfferEntity>().HasKey(x => x.Offer_Id);
-            builder.Entity<OfferEntity>().HasOne(x => x.User).WithMany(x => x.Offers);
-            builder.Entity<OfferEntity>().HasOne(x => x.Book).WithMany(x => x.Offers);
-            builder.Entity<OfferEntity>().HasOne(x => x.Address).WithMany(x => x.Offers);
+            builder.Entity<OfferEntity>().HasOne(x => x.User).WithMany(x => x.Offers).HasForeignKey(x => x.User_Id);
+            builder.Entity<OfferEntity>().HasOne(x => x.Book).WithMany(x => x.Offers).HasForeignKey(x => x.Book_Id);
+            builder.Entity<OfferEntity>().HasOne(x => x.Address).WithMany(x => x.Offers).HasForeignKey(x => x.Address_Id);
             //BookEntity
             builder.Entity<BookEntity>().HasKey(x => x.Book_Id);
-            builder.Entity<BookEntity>().HasOne(x => x.Category).WithMany(x => x.Books);
+            builder.Entity<BookEntity>().HasOne(x => x.Category).WithMany(x => x.Books).HasForeignKey(x => x.Category_Id);
             //AddressEntity
             builder.Entity<AddressEntity>().HasKey(x => x.Address_Id);
             //CategoryEntity
@@ -46,12 +51,12 @@ namespace WymianaKsiazek.Database
             builder.Entity<BookOpinionsEntity>().HasOne(x => x.Book).WithOne(x => x.Opinion).HasForeignKey<BookOpinionsEntity>(x => x.Book_Id);
             //BookCommentsEntity
             builder.Entity<BookCommentsEntity>().HasKey(x => x.Comment_Id);
-            builder.Entity<BookCommentsEntity>().HasOne(x => x.User).WithMany(x => x.BookComments);
-            builder.Entity<BookCommentsEntity>().HasOne(x => x.Book).WithMany(x => x.Comments);
+            builder.Entity<BookCommentsEntity>().HasOne(x => x.User).WithMany(x => x.BookComments).HasForeignKey(x => x.User_Id);
+            builder.Entity<BookCommentsEntity>().HasOne(x => x.Book).WithMany(x => x.Comments).HasForeignKey(x => x.Book_Id);
             //OfferCommentsEntity
             builder.Entity<OfferCommentsEntity>().HasKey(x => x.Comment_Id);
-            builder.Entity<OfferCommentsEntity>().HasOne(x => x.User).WithMany(x => x.OfferComments);
-            builder.Entity<OfferCommentsEntity>().HasOne(x => x.Offer).WithMany(x => x.Comments);
+            builder.Entity<OfferCommentsEntity>().HasOne(x => x.User).WithMany(x => x.OfferComments).HasForeignKey(x => x.User_Id);
+            builder.Entity<OfferCommentsEntity>().HasOne(x => x.Offer).WithMany(x => x.Comments).HasForeignKey(x => x.Offer_Id);
             //UserBookOpinion
             builder.Entity<UserBookOpinion>().HasKey(x => new { x.User_Id, x.Opinion_Id });
             builder.Entity<UserBookOpinion>().HasOne(x => x.User).WithMany(x => x.UserOpinions).HasForeignKey(x => x.User_Id);
@@ -59,6 +64,23 @@ namespace WymianaKsiazek.Database
             //RefreshToken
             builder.Entity<RefreshTokenEntity>().HasKey(x => x.Id);
             builder.Entity<RefreshTokenEntity>().HasOne(x => x.User).WithMany().OnDelete(DeleteBehavior.Cascade);
+            //UserOpinions
+            builder.Entity<UserOpinionsEntity>().HasKey(x => x.Opinion_Id);
+            builder.Entity<UserOpinionsEntity>().HasOne(x => x.User).WithOne(x => x.UserOpinion).HasForeignKey<UserOpinionsEntity>(x => x.User_Id);
+            //UserUserOpinion
+            builder.Entity<UserUserOpinionEntity>().HasKey(x => new { x.User_Id, x.Opinion_Id});
+            builder.Entity<UserUserOpinionEntity>().HasOne(x => x.User).WithMany(x => x.UserUserOpinion).HasForeignKey(x => x.User_Id);
+            builder.Entity<UserUserOpinionEntity>().HasOne(x => x.UserOpinion).WithMany(x => x.UserUserOpinions).HasForeignKey(x => x.Opinion_Id);
+            //UserLikedOffers
+            builder.Entity<UserLikedOffersEntity>().HasKey(x => new { x.User_Id, x.Offer_Id });
+            builder.Entity<UserLikedOffersEntity>().HasOne(x => x.User).WithMany(x => x.LikedOffers).HasForeignKey(x => x.User_Id);
+            builder.Entity<UserLikedOffersEntity>().HasOne(x => x.Offer).WithMany(x => x.UserLiked).HasForeignKey(x => x.Offer_Id);
+            //ConversationEntity
+            builder.Entity<ConversationEntity>().HasOne(x => x.User1).WithMany(x => x.MyConversations).HasForeignKey(x => x.User1_Id);
+            builder.Entity<ConversationEntity>().HasOne(x => x.User2).WithMany(x => x.ConversationsWith).HasForeignKey(x => x.User2_Id);
+            //MessageEntity
+            builder.Entity<MessageEntity>().HasOne(x => x.User).WithMany(x => x.Messages).HasForeignKey(x => x.User_Id);
+            builder.Entity<MessageEntity>().HasOne(x => x.Conversation).WithMany(x => x.Messages).HasForeignKey(x => x.Conv_Id);
         }
     }
 }
