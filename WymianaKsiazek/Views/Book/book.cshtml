@@ -1,0 +1,160 @@
+@using WymianaKsiazek.Models.MapperModels;
+@model BookOpinionMP
+<div class="help-div"></div>
+<div id="book-window">
+    <div id="book-window-image">
+        <img src="~/images/BookImages/@Model.Img" class="book-image">
+    </div>
+    <div id="book-info-window">
+        <div id="book-title-header">@Model.Title</div>
+        <div id="book-more-info-window">
+            <div>@Model.Author</div>
+            <div id="book-info-options">
+                <a href="@Url.Action("search", "Offer", new { title = Model.Title, author = Model.Author})"><div class="classicbutton">Zobacz oferty</div></a>
+                <a href="@Url.Action("Reviews", "Book", new { author = Model.Author})"><div class="classicbutton">Szukaj innych książek tego autora</div></a>
+            </div>
+            <div style="height: 20px; border-bottom: 1px solid #818790;"></div>
+            <div id="book-opinions-window">
+                <div>Opinie</div>
+                <input type="hidden" id="opinionidinput" value="@Model.Opinion.Opinion_Id"/>
+                <div id="book-average-opinions-window">
+                    @if (ViewBag.IsUserLoggedIn == false)
+                    {
+                        <a asp-action="Login" asp-controller="User" class="loginlink">
+                            <div class="classicloginbutton">Zaloguj się, aby dodać opinię</div>
+                        </a>
+                    }
+                    else
+                    {
+                        int opinionvalue = ViewBag.UserOpinion;
+                        int rest = 5 - opinionvalue;
+                        if (opinionvalue == 0)
+                        {
+                            <div id="Opinion-Header">Dodaj opinie:</div>
+                            <div class="user-opinions-stars" id="user-opinion1" onclick="AddOpinion(1)"><i class="far fa-star"></i></div>
+                            <div class="user-opinions-stars" id="user-opinion2" onclick="AddOpinion(2)"><i class="far fa-star"></i></div>
+                            <div class="user-opinions-stars" id="user-opinion3" onclick="AddOpinion(3)"><i class="far fa-star"></i></div>
+                            <div class="user-opinions-stars" id="user-opinion4" onclick="AddOpinion(4)"><i class="far fa-star"></i></div>
+                            <div class="user-opinions-stars" id="user-opinion5" onclick="AddOpinion(5)"><i class="far fa-star"></i></div>
+                            <div style="clear: both;"></div>
+                        }
+                        else
+                        {
+                            <div>Twoja opinia:</div>
+                            for (int i = 0; i < opinionvalue; i++)
+                            {
+                                <div class="user-opinions-stars" style="color: orange;"><i class="fas fa-star"></i></div>
+                            }
+                            for (int i = 0; i < rest; i++)
+                            {
+                                <div class="user-opinions-stars"><i class="far fa-star"></i></div>
+                            }
+                            <div style="clear: both;"></div>
+                        }
+                    }
+                </div>
+                <script>
+                    var isbookrated = false;
+                    function AddOpinion(value) {
+                        if (isbookrated == false) {
+                            $.ajax({
+                                type: "POST",
+                                url: '@Url.Action("AddOpinion", "Book")',
+                                data: { "value": value, "opinionid": $('#opinionidinput').val() },
+                                success: function (response) {
+                                    if (response.success) {
+                                        $('#Opinion-Header').html("Twoja opinia:");
+                                        for (let i = 1; i <= value; i++) {
+                                            let divname = "#user-opinion" + i;
+                                            $(divname).html('<i class="fas fa-star" style="color: orange;"></i>');
+                                        }
+                                        isbookrated = true;
+                                    }
+                                    else {
+                                        alert("Coś poszło nie tak! Kod: " + response.responseText);
+                                    }
+                                },
+                                failure: function (response) {
+                                    alert("Fail " + response.responseText);
+                                },
+                                error: function (response) {
+                                    alert("Error " + response.responseText);
+                                }
+                            });
+                        }
+                    }
+                </script>
+                <div id="book-all-opinions">
+                    @{
+                        var percenteges = Model.Opinion.OpinionsWithPercentage();
+                        string opinion5width = percenteges.Item1 + "%";
+                        string opinion4width = percenteges.Item2 + "%";
+                        string opinion3width = percenteges.Item3 + "%";
+                        string opinion2width = percenteges.Item4 + "%";
+                        string opinion1width = percenteges.Item5 + "%";
+                    }
+                    <div class="book-opinion">5: (@percenteges.Item1%)</div><div id="book-opinion-5" class="book-opinion-line" style="width:@opinion5width;"></div>
+                    <div class="book-opinion">4: (@percenteges.Item2%)</div><div id="book-opinion-4" class="book-opinion-line" style="width:@opinion4width;"></div>
+                    <div class="book-opinion">3: (@percenteges.Item3%)</div><div id="book-opinion-3" class="book-opinion-line" style="width:@opinion3width;"></div>
+                    <div class="book-opinion">2: (@percenteges.Item4%)</div><div id="book-opinion-2" class="book-opinion-line" style="width:@opinion2width;"></div>
+                    <div class="book-opinion">1: (@percenteges.Item5%)</div><div id="book-opinion-1" class="book-opinion-line" style="width:@opinion1width;"></div>
+                </div>
+                <div id="book-more-info-opinions">
+                    <div class="div-float"><i class="far fa-star"></i>@Model.Opinion.TotalOpinions() Opinii</div>
+                    <div class="div-float"><i class="far fa-comment-alt"></i>132 Komentarzy</div>
+                    <div style="clear: both;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+    <div id="book-description">
+        <h2>Krótki opis</h2>
+        Jedna z najsłynniejszych powieści Młodej Polski autorstwa ikony tej epoki - Stefana Żeromskiego. Główny wątek książki osnuty jest wokół realiów panujących w Polsce znajdującej się pod zaborem rosyjski. Na tym tle zaprezentowana została niełatwa sytuacja młodzieży polskiej i jej losów pod jarzmem zaborcy. Powieść Żeromskiego jest świadectwem walki z rusyfikacją podjętej przez młode pokolenie Polaków. To również obraz tamtejszych, popowstaniowych czasów, pełen autentycznego kolorytu i wyrazistych postaci.
+        W roli czytającego wystąpił ceniony lektor Marcin Nowakowski. Dodatkowym atutem wydania, który wyróżnia go spośród innych książek czytanych jest oryginalna oprawa muzyczna świetnie wpasowująca się w klimat powieści Żeromskiego.
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <div id="offerbyid-comments-window">
+            <h2>Komentarze</h2>
+            <div id="offerbyid-addcomment-window">
+                <form autocomplete="off" id="addcommentform">
+                    <input class="writecommentinput" id="addcommentinput" name="addcommentinput" placeholder="Napisz komentarz...">
+                </form>
+            </div>
+            <div id="offerbyid-comments">
+                <div class="offerbyid-comment">
+                    <div class="user-image-comment">
+                        <img src="~/images/user.png" class="usercommentimage">
+                        <div class="comment-user-nickname">Zubiczek</div>
+                    </div>
+                    <div class="comment-content">
+                        Bardzo dobra książka polecam bardzo każdemu
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="offerbyid-comment">
+                    <div class="user-image-comment">
+                        <img src="~/images/user.png" class="usercommentimage">
+                        <div class="comment-user-nickname">Zubiczek</div>
+                    </div>
+                    <div class="comment-content">
+                        Ciekawa lektura, polecam serdecznie
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="offerbyid-comment">
+                    <div class="user-image-comment">
+                        <img src="~/images/user.png" class="usercommentimage">
+                        <div class="comment-user-nickname">Zubiczek</div>
+                    </div>
+                    <div class="comment-content">
+                        Trochę nudna lektura, nieciekawie mi się czytało
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="showsmorecommentsbutton">Pokaż więcej</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="help-div"></div>
