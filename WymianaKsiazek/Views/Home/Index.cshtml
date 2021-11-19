@@ -1,222 +1,89 @@
-﻿@{
+@{
     ViewData["Title"] = "Home Page";
+    int index = 0;
+    List<long> offersids = ViewBag.UserLikedOffersIds;
 }
 
+@using WymianaKsiazek.Models.MapperModels;
+@model List<OffersListMP>
 <div id="categoryheader"><h1>Kategorie główne</h1></div>
 <div id="categorymenu">
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/literaturalogo.jpg" alt="Literatura"></div>
-        <div class="categoryname">Literatura</div>
-    </div>
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/criminallogo.jpg" alt="Kryminał"></div>
-        <div class="categoryname">Kryminał, Thriller</div>
-    </div>
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/fantasylogo.jpg" alt="Fantasy"></div>
-        <div class="categoryname">Fantasy, Sciene Fiction</div>
-    </div>
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/horrorlogo.jpg" alt="Horror"></div>
-        <div class="categoryname">Horror</div>
-    </div>
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/lovelogo.jpg" alt="Romans"></div>
-        <div class="categoryname">Romanse</div>
-    </div>
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/lekturylogo.jpg" alt="Lektury"></div>
-        <div class="categoryname">Lektury</div>
-    </div>
-    <div class="categorywindow">
-        <div class="categoryimage"><img class="roundedimage" src="~/images/others.jpg" alt="Inne"></div>
-        <div class="categoryname">Inne</div>
-    </div>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="1">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/literaturalogo.jpg" alt="Literatura"></div>
+            <div class="categoryname">Literatura</div>
+        </div>
+    </a>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="2">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/criminallogo.jpg" alt="Kryminał"></div>
+            <div class="categoryname">Kryminał, Thriller</div>
+        </div>
+    </a>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="3">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/fantasylogo.jpg" alt="Fantasy"></div>
+            <div class="categoryname">Fantasy, Sciene Fiction</div>
+        </div>
+    </a>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="4">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/horrorlogo.jpg" alt="Horror"></div>
+            <div class="categoryname">Horror</div>
+        </div>
+    </a>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="5">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/lovelogo.jpg" alt="Romans"></div>
+            <div class="categoryname">Romanse</div>
+        </div>
+    </a>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="6">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/lekturylogo.jpg" alt="Lektury"></div>
+            <div class="categoryname">Lektury</div>
+        </div>
+    </a>
+    <a asp-action="Category" asp-controller="Home" asp-route-id="7">
+        <div class="categorywindow">
+            <div class="categoryimage"><img class="roundedimage" src="~/images/others.jpg" alt="Inne"></div>
+            <div class="categoryname">Inne</div>
+        </div>
+    </a>
 </div>
 <div id="newestofferheader"><h1>Najnowsze oferty</h1></div>
 <div id="newestoffercontainer">
+    @foreach (var i in Model)
+    {
+        index++;
     <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
+        <div class="offerimage"><img class="offerpicture" src="~/images/@i.Image" alt="Image"></div>
+        <div class="offerbooktitle">@i.Book.Title</div>
+        <div class="offerbookauthor">@i.Book.Author</div>
+        <div class="offeruser">Dodano przez: <div class="offerusername">@i.User.UserName</div></div>
         <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
+        <div class="offercityanddate">@i.Address.Name - @i.DateFromat()</div>
         <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
+        @if (i.ForSale == true)
+        {
+            <div class="offertype">Sprzedaż</div>
+            <div class="offerprice">@i.Price zł</div>
+        }
+        else
+        {
+            <div class="offertype">Wymiana</div>
+        }
         <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
+        <button class="offerpreviewbutton" onclick="location.href = '@Url.Action("offer", "Offer", new { id = i.Offer_Id})'">Zobacz ofertę</button>
     </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
+        if (index % 4 == 0)
+        {
+            <div style="clear: both;"></div>
+        }
+    }
     <div style="clear: both;"></div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div style="clear: both;"></div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div class="offerwindow">
-        <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-        <div class="offerbooktitle">Syzyfowe Prace</div>
-        <div class="offerbookauthor">Stefan Żeromski</div>
-        <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-        <div style="margin-top: 40px;"></div>
-        <div class="offercity">Toruń </div>
-        <div class="offerdate">wczoraj 11:56</div>
-        <div style="clear: both;"></div>
-        <div class="offertype">Sprzedaż</div>
-        <div class="offerprice">49,99zł</div>
-        <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-        <div style="clear: both;"></div>
-        <button class="offerpreviewbutton">Zobacz ofertę</button>
-    </div>
-    <div style="clear: both;"></div>
-    <div class="seealloffersbutton"><button class="moreoffersbutton">Zobacz wszystkie</button></div>
+    <div class="seealloffersbutton"><button class="moreoffersbutton" onclick="location.href = '@Url.Action("search", "Offer")'">Zobacz wszystkie</button></div>
 </div>
+<script>
+    
+</script>
