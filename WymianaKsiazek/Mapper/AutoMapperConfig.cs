@@ -25,6 +25,11 @@ namespace WymianaKsiazek.Mapper
                 cfg.CreateMap<UserEntity, UserMP>();
                 cfg.CreateMap<UserEntity, MyProfileMP>();
                 cfg.CreateMap<UserEntity, UserProfile>();
+                cfg.CreateMap<BookEntity, BookReviewsList>();
+                cfg.CreateMap<UserEntity, UserWithOpinionsMP>();
+                cfg.CreateMap<UserOpinionsEntity, UserOpinionsMP>();
+                cfg.CreateMap<ConversationEntity, ConversationMP>();
+                cfg.CreateMap<MessageEntity, MessageMP>();
             }).CreateMapper();
     }
 }
