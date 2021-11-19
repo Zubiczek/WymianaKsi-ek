@@ -1,0 +1,124 @@
+﻿@using WymianaKsiazek.Models.MapperModels;
+@model UserProfile
+@{ 
+    int index = 0;
+}
+<div id="userprofile-window">
+    <div id="userprofile-info">
+        <div id="userprofile-image">
+            <img src="~/images/user.png" class="userprofile-image-style">
+        </div>
+        <div id="userprofile-data">
+            <div id="userprofile-nickname">@Model.UserName</div>
+            <div id="userprofile-city"><i class="fas fa-map-marker-alt"></i> Toruń</div>
+            <div id="userprofile-options">
+                <div class="userprofile-option">Wyślij wiadomość <i class="far fa-envelope"></i></div>
+                <div class="userprofile-option">Zgłoś użytkownika <i class="far fa-flag"></i></div>
+            </div>
+        </div>
+        <div id="user-average-opinions-window">
+            <input type="hidden" id="useropinionidinput" value="@Model.UserOpinion.Opinion_Id"/>
+            @if (ViewBag.IsUserLoggedIn == false)
+            {
+                <a asp-action="Login" asp-controller="User" class="loginlink">
+                    <div class="classicloginbutton">Zaloguj się, aby dodać opinię</div>
+                </a>
+            }
+            else
+            {
+                int useropinionvalue = ViewBag.UserOpinion;
+                int rest = 5 - useropinionvalue;
+                if (useropinionvalue == 0)
+                {
+                    <div id="UserOpinion-Header">Dodaj opinie:</div>
+                    <div class="user-opinions-stars" id="user-opinion1" onclick="AddOpinionAboutUser(1)"><i class="far fa-star"></i></div>
+                    <div class="user-opinions-stars" id="user-opinion2" onclick="AddOpinionAboutUser(2)"><i class="far fa-star"></i></div>
+                    <div class="user-opinions-stars" id="user-opinion3" onclick="AddOpinionAboutUser(3)"><i class="far fa-star"></i></div>
+                    <div class="user-opinions-stars" id="user-opinion4" onclick="AddOpinionAboutUser(4)"><i class="far fa-star"></i></div>
+                    <div class="user-opinions-stars" id="user-opinion5" onclick="AddOpinionAboutUser(5)"><i class="far fa-star"></i></div>
+                    <div style="clear: both;"></div>
+                }
+                else
+                {
+                    <div>Twoja opinia:</div>
+                    for (int i = 0; i < useropinionvalue; i++)
+                    {
+                        <div class="user-opinions-stars" style="color: orange;"><i class="fas fa-star"></i></div>
+                    }
+                    for (int i = 0; i < rest; i++)
+                    {
+                        <div class="user-opinions-stars"><i class="far fa-star"></i></div>
+                    }
+                    <div style="clear: both;"></div>
+                }
+            }
+        </div>
+        <div style="clear: both;"></div>
+        <script>
+            var isuseralreadyrated = false;
+            function AddOpinionAboutUser(value) {
+                if (isuseralreadyrated == false) {
+                    $.ajax({
+                        type: "Post",
+                        url: '@Url.Action("AddOpinionAboutUser", "User")',
+                        data: { "value": value, "opinionid": $('#useropinionidinput').val() },
+                        success: function (response) {
+                            if (response.success) {
+                                isuseralreadyrated = true;
+                                $('#UserOpinion-Header').html("Twoja opinia:");
+                                for (let i = 1; i <= value; i++) {
+                                    let divname = "#user-opinion" + i;
+                                    $(divname).html('<i class="fas fa-star" style="color: orange;"></i>');
+                                }
+                            }
+                            else {
+                                alert("Coś poszło nie tak! Kod: " + response.responseText);
+                            }
+                        },
+                        failure: function (response) {
+                            alert("Fail " + response.responseText);
+                        },
+                        error: function (response) {
+                            alert("Error " + response.responseText);
+                        }
+                    });
+                }
+            }
+        </script>
+    </div>
+    <div id="userprofile-offers">
+        <div style="text-align: center;">
+            <h2>Dodane oferty</h2>
+        </div>
+        @foreach (var i in Model.Offers)
+        {
+            index++;
+            <div class="offerwindow">
+                <div class="offerimage"><img class="offerpicture" src="~/images/@i.Image" alt="Image"></div>
+                <div class="offerbooktitle">@i.Book.Title</div>
+                <div class="offerbookauthor">@i.Book.Author</div>
+                <div class="offeruser">Dodano przez: <div class="offerusername">@Model.UserName</div></div>
+                <div style="margin-top: 40px;"></div>
+                <div class="offercityanddate">@i.Address.Name - @i.DateFromat()</div>
+                <div style="clear: both;"></div>
+                @if (i.ForSale == true)
+                {
+                    <div class="offertype">Sprzedaż</div>
+                    <div class="offerprice">@i.Price zł</div>
+                }
+                else
+                {
+                    <div class="offertype">Wymiana</div>
+                }
+                <div style="clear: both;"></div>
+                <button class="offerpreviewbutton" onclick="location.href = '@Url.Action("offer", "Offer", new { id = i.Offer_Id})'">Zobacz ofertę</button>
+            </div>
+            if (index % 4 == 0)
+            {
+                <div style="clear: both;"></div>
+            }
+        }
+        <div style="clear: both;"></div>
+    </div>
+</div>
+<div style="height: 50px;"></div>
