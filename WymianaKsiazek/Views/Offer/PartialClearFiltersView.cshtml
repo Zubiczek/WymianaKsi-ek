@@ -1,0 +1,39 @@
+﻿@using WymianaKsiazek.Models.MapperModels;
+@model List<OffersListMP>
+@{
+    int index = 0;
+}
+@if (Model.Count() == 0)
+{
+    <p>Brak ogłoszeń</p>
+}
+@foreach (var i in Model)
+{
+    index++;
+    <div class="offerwindow">
+        <div class="offerimage"><img class="offerpicture" src="~/images/@i.Image" alt="Image"></div>
+        <div class="offerbooktitle">@i.Book.Title</div>
+        <div class="offerbookauthor">@i.Book.Author</div>
+        <div class="offeruser">Dodano przez: <div class="offerusername">@i.User.UserName</div></div>
+        <div style="margin-top: 40px;"></div>
+        <div class="offercityanddate">@i.Address.Name - @i.DateFromat()</div>
+        <div style="clear: both;"></div>
+        @if (i.ForSale == true)
+        {
+            <div class="offertype">Sprzedaż</div>
+            <div class="offerprice">@i.Price zł</div>
+        }
+        else
+        {
+            <div class="offertype">Wymiana</div>
+        }
+        <div style="clear: both;"></div>
+        <button class="offerpreviewbutton" onclick="location.href = '@Url.Action("offer", "Offer", new { id = i.Offer_Id})'">Zobacz ofertę</button>
+    </div>
+    if (index % 4 == 0)
+    {
+        <div style="clear: both;"></div>
+    }
+}
+<div style="clear: both;"></div>
+

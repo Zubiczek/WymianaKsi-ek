@@ -1,0 +1,203 @@
+﻿
+<div id="addoffer-window">
+    <form autocomplete="off" id="addofferform" role="form" method="post" enctype="multipart/form-data" asp-action="AddNewOffer" asp-controller="Offer">
+        <h2>Informacje - Książka</h2>
+        <div class="addoffer-header">Tytuł <i class="fas fa-book"></i></div>
+        <input type="text" id="titleinput" name="titleinput" placeholder="Tytuł książki" class="addoffer-book-input" required>
+        <div id="dropdownbooklist" class="dropdown-content">
+        </div>
+        <div></div>
+        <div class="addoffer-header">Autor <i class="fas fa-user"></i></div>
+        <input type="text" id="authorinput" name="authorinput" placeholder="Autor" class="addoffer-book-input" required>
+        <div style="height: 20px;"></div>
+        <div class="searchpagecategory" id="categorychoice" onclick="showDropdownList()">
+            <div style="font-size: 16px;">Kategoria <i class="fas fa-book"></i></div>
+            <div class="searchpagecategoryfilter" id="categoryfiltervalue" style="border-right: 1px solid #A9A9A9; width: 230px;">
+                Wybierz kategorie
+            </div>
+            <div class="searchpagecategoryfilter"><i class="fas fa-arrow-down"></i></div>
+            <div style="clear: both;"></div>
+            <div id="dropdowncategorylist" class="dropdown-content">
+                <p onclick="setCategoryValue(1, 'Literatura')">Literatura</p>
+                <p onclick="setCategoryValue(2, 'Kryminał, Thriller')">Kryminał, Thriller</p>
+                <p onclick="setCategoryValue(3, 'Fantasy, Sciene Fiction')">Fantasy, Sciene Fiction</p>
+                <p onclick="setCategoryValue(4, 'Horror')">Horror</p>
+                <p onclick="setCategoryValue(5, 'Romanse')">Romanse</p>
+                <p onclick="setCategoryValue(6, 'Lektury')">Lektury</p>
+                <p onclick="setCategoryValue(7, 'Inne')">Inne</p>
+            </div>
+            <input type="hidden" value=0 id="inputcategoryid" name="inputcategoryid">
+            <input type="hidden" value="0" id="bookidinput" name="bookidinput" />
+        </div>
+        <div style="clear: both;"></div>
+        <div class="addoffer-error" id="category-error"></div>
+        <div style="height: 30px;"></div>
+        <h2>Informacje - Oferta</h2>
+        <div class="addoffer-header">Opis ogłoszenia <i class="fas fa-file-alt"></i></div>
+        <textarea class="addoffer-content-input" placeholder="Opis" id="addoffercontent" name="addoffercontent" maxlength='100' required></textarea>
+        <div style="clear: both;"></div>
+        <div class="content-letter-count1" id="count-letter">0</div>
+        <div class="content-letter-count2">/100</div>
+        <div style="clear: both;"></div>
+        <div class="addoffer-header">Typ ogłoszenia <i class="fas fa-check-square"></i></div>
+        <div class="addoffer-checkboxes">
+            <input type="checkbox" id="exchangecheckbox" onclick="checkboxClick(0)">Wymiana
+        </div>
+        <div class="addoffer-checkboxes" style="margin-left: 15px;">
+            <input type="checkbox" id="salecheckbox" onclick="checkboxClick(1)">Sprzedaż
+        </div>
+        <input type="hidden" value=0 id="forsale" name="forsale">
+        <div style="clear: both;"></div>
+        <div class="addoffer-error" id="checkboxes-error"></div>
+        <div id="addoffer-price-input">
+            <div class="addoffer-header">Cena <i class="fas fa-dollar-sign"></i></div>
+            <input type="number" min="0" max="99" value="0" step="0.01" id="price" name="price">
+        </div>
+        <div id="addoffer-image">
+            <div class="addoffer-header">Zdjęcie <i class="fas fa-images"></i></div>
+            <input type="file" id="addofferimg" name="addofferimg" accept="image/*" required>
+        </div>
+		<div class="errorfield">
+			@if(ViewBag.Error != null)
+            {
+				<p>@ViewBag.Error</p>
+            }
+		</div>
+        <div class="addoffer-add-button">
+            <input type="submit" value="Dodaj ogłoszenie" class="addoffer-submit">
+        </div>
+    </form>
+</div>
+<div class="rules-window">
+    <h2 style="text-align: center; color: black;">Regulamin</h2>
+    <div>1.Zakaz używania wulgarnego słownictwa</div>
+    <div>2.Zdjęcie ma zawierać tylko książkę</div>
+    <div>3.Prosimy zachować kulturę w opisie</div>
+    <div>Niestosowanie się grozi usunięciem oferty<br /> oraz zablokowanie konta na naszym portalu</div>
+</div>
+<div style="clear: both;"></div>
+<script>
+	var categorylistisdropped = false;
+	var isbookselected = false;
+	const form = document.querySelector('#addofferform'); 
+	function showDropdownList()
+	{
+		if (isbookselected == false) {
+			if (categorylistisdropped == false) {
+				$('#dropdowncategorylist').css('display', 'block');
+				categorylistisdropped = true;
+			}
+			else {
+				$('#dropdowncategorylist').css('display', 'none');
+				categorylistisdropped = false;
+			}
+		}
+	}
+	function setCategoryValue(id, categoryname)
+	{
+		$('#categoryfiltervalue').text(categoryname);
+		$('#inputcategoryid').val(id);
+	}	
+	function checkboxClick(value)
+	{
+		let exchangecheckbox = $('#exchangecheckbox')[0];
+		let salecheckbox = $('#salecheckbox')[0];
+		if(value == 0)
+		{
+			if(exchangecheckbox.checked)
+			{
+				$('#addoffer-price-input').css("display", "none");
+				$('#forsale').val(0);
+				salecheckbox.checked = false;
+			}
+			else
+			{
+				$('#addoffer-price-input').css("display", "block");
+			}
+		}
+		else if(value == 1)
+		{
+			if(salecheckbox.checked)
+			{
+				$('#addoffer-price-input').css("display", "block");
+				$('#forsale').val(1);
+				exchangecheckbox.checked = false;
+			}
+		}
+	}
+	let content = document.querySelector("textarea");
+	content.addEventListener('input', event => {
+		const target = event.currentTarget
+		const maxLength = target.getAttribute("maxlength");
+		const currentLength = target.value.length;
+		$('#count-letter').html(currentLength);
+		if (currentLength > 90) {
+			$('#count-letter').css("color", "red");
+		}
+		else if (currentLength > 70) {
+			$('#count-letter').css("color", "orange");
+		}
+		else {
+			$('#count-letter').css("color", "green");
+		}
+	});
+
+	form.addEventListener('submit', function(e){
+		e.preventDefault();
+		let exchangecheckbox = $('#exchangecheckbox')[0];
+		let salecheckbox = $('#salecheckbox')[0];
+		if(exchangecheckbox.checked == false && salecheckbox.checked == false)
+		{
+			$('#checkboxes-error').html('Zaznacz jedną z powyższych opcji!');
+		}
+		else if($('#inputcategoryid').val() == 0)
+		{
+			$('#category-error').html('Wybierz kategorie!');
+		}
+		else
+		{
+            form.submit();
+		}
+	});
+    let titleinput = form.elements.namedItem("titleinput");
+	titleinput.addEventListener('input', GetBooks);
+
+    function setBook(title, author, category, categoryid) {
+        $('#titleinput').val(title);
+        $('#authorinput').val(author);
+        setCategoryValue(categoryid, category);
+		$('#dropdownbooklist').css('display', 'none');
+		isbookselected = true;
+	}
+    function test(text1, text2, text3, text4) {
+        alert(text1 + " " + text2 + " " + text3 + " " + text4);
+    }
+	function GetBooks() {
+		$.ajax({
+			type: "GET",
+			url: '@Url.Action("GetBooks", "Offer")',
+			data: { "title": $('#titleinput').val() },
+			success: function (response) {
+				var dropdown = $('#dropdownbooklist');
+                dropdown.css('display', 'block');
+				dropdown.empty();
+				isbookselected = false;
+				for (let i = 0; i < response.length; i++) {
+					let titleresponse = response[i].title;
+					let authorresponse = response[i].author;
+					let category = response[i].name;
+					let categoryid = response[i].id;
+					dropdown.append(
+                        $("<p onclick='setBook(\"" + titleresponse + "\", \"" + authorresponse + "\", \"" + category + "\", \"" + categoryid + "\")'>").text(titleresponse + " - " + authorresponse)
+					);
+                }
+			},
+            failure: function (response) {
+                alert("Fail");
+            },
+            error: function (response) {
+                alert("Error");
+            }
+		});
+	}
+</script>
