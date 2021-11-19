@@ -24,6 +24,10 @@ using WymianaKsiazek.Queries.UserQueries;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using WymianaKsiazek.Queries.OfferQueries;
+using WymianaKsiazek.Queries.BookQueries;
+using Microsoft.AspNetCore.SignalR;
+using WymianaKsiazek.Hubs;
 
 namespace WymianaKsiazek
 {
@@ -44,6 +48,8 @@ namespace WymianaKsiazek
             services.AddSingleton(AutoMapperConfig.Initialize());
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<IUserQueries, UserQueries>();
+            services.AddScoped<IOfferQueries, OfferQueries>();
+            services.AddScoped<IBookQueries, BookQueries>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddScoped<IUrlHelper>(x => {
@@ -82,8 +88,10 @@ namespace WymianaKsiazek
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
                     };
                 });
+            services.AddSignalR();
             services.AddAuthorization();
             services.AddMvc().AddSessionStateTempDataProvider();
+            services.AddMemoryCache();
             services.AddSession();
             services.AddHttpContextAccessor();
         }
@@ -110,6 +118,11 @@ namespace WymianaKsiazek
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseEndpoints(endpoint =>
+            {
+                endpoint.MapHub<ChatHub>("/User/Chat/{id}");
+            });
 
             app.UseEndpoints(endpoints =>
             {
