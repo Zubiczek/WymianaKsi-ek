@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +12,9 @@ using System.Security.Claims;
 using WymianaKsiazek.Database;
 using WymianaKsiazek.Database.Entities;
 using WymianaKsiazek.Models.MapperModels;
+using WymianaKsiazek.Models;
+using System.IO;
+using System.Globalization;
 
 namespace WymianaKsiazek.Queries.OfferQueries
 {
@@ -26,10 +29,22 @@ namespace WymianaKsiazek.Queries.OfferQueries
             _mapper = mapper;
             _userManager = userManager;
         }
+
+        public List<OffersListMP> GetOffers()
+        {
+            var offerentites = _context.Offer.Include(x => x.User).Include(x => x.Book).ThenInclude(x => x.Category).Include(x => x.Address).ToList();
+            return _mapper.Map<List<OffersListMP>>(offerentites);
+        }
         public List<OffersListMP> GetAllOffers()
         {
-            var offerentites = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).ToList();
+            var offerentites = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).OrderByDescending(x => x.CreatedOn).ToList();
             return _mapper.Map<List<OffersListMP>>(offerentites);
+        }
+        public List<OffersListMP> GetOffersWithBook(string title, string author)
+        {
+            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address)
+                .Where(x => x.Book.Title == title && x.Book.Author == author).ToList();
+            return _mapper.Map<List<OffersListMP>>(offers);
         }
         public List<OffersListMP> GetCityOffers(long addressid)
         {
@@ -47,31 +62,127 @@ namespace WymianaKsiazek.Queries.OfferQueries
             var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.Book_Id == bookid).ToList();
             return _mapper.Map<List<OffersListMP>>(offers);
         }
+        public List<OffersListMP> GetOffersByCategory(long id)
+        {
+            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.Book.Category_Id == id).ToList();
+            return _mapper.Map<List<OffersListMP>>(offers);
+        }
         public OfferMP GetOfferById(long offerid)
         {
-            var offer = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Include(x => x.Comments).Where(x => x.Offer_Id == offerid).FirstOrDefault();
+            var offer = _context.Offer.Include(x => x.User).ThenInclude(x => x.UserOpinion).Include(x => x.Book).Include(x => x.Address).Include(x => x.Comments).Where(x => x.Offer_Id == offerid).FirstOrDefault();
             return _mapper.Map<OfferMP>(offer);
         }
-        public void AddOffer(CreateOfferMP offermodel, string userid)
+        public List<OffersListMP> GetSearchesOffers(string titleauthor, string city)
         {
-            var checkbook = _context.Book.Where(x => x.Author == offermodel.Book.Author && x.Title == offermodel.Book.Title).FirstOrDefault();
-            long id;
-            if (checkbook == null)
+            var alloffers = GetOffers();
+            List<OffersListMP> offers = null;
+            if((titleauthor == null || titleauthor == "") && (city == null || city == ""))
             {
-                var book = new BookEntity { Title = offermodel.Book.Title, Author = offermodel.Book.Author, Category_Id = offermodel.Book.Category_Id, ISBN = offermodel.Book.ISBN };
-                _context.Book.Add(book);
-                _context.SaveChangesAsync();
-                var book2 = _context.Book.Where(x => x.Author == offermodel.Book.Author && x.Title == offermodel.Book.Title).FirstOrDefault();
-                id = book2.Book_Id; ;
+                return alloffers;
+
+            }
+            else if(titleauthor == null || titleauthor == "")
+            {
+                offers = (from i in alloffers where i.Address.Name == city select i).ToList();
             }
             else
             {
-                id = checkbook.Book_Id;
+                titleauthor = titleauthor.ToUpper();
+                var strings = titleauthor.Split(' ');
+                int index = 1;
+                if (strings.Length > 1)
+                {
+                    while (index < strings.Length)
+                    {
+                        string word1 = "";
+                        string word2 = "";
+                        for (int j = 0; j < index; j++)
+                        {
+                            word1 += strings[j];
+                            if (j < index - 1)
+                            {
+                                word1 += " ";
+                            }
+                        }
+                        for (int j = index; j < strings.Length; j++)
+                        {
+                            word2 += strings[j];
+                            if (j < strings.Length - 1)
+                            {
+                                word2 += " ";
+                            }
+                        }
+                        index++;
+                        if (city == null || city == "")
+                        {
+                            offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word1) && i.Book.Author.ToUpper().Contains(word2) select i).ToList();
+                            if (offers.Count > 0)
+                            {
+                                return offers;
+                            }
+                            offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word2) && i.Book.Author.ToUpper().Contains(word1) select i).ToList();
+                            if (offers.Count > 0)
+                            {
+                                return offers;
+                            }
+                        }
+                        else
+                        {
+                            offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word1) && i.Book.Author.ToUpper().Contains(word2) && i.Address.Name == city select i).ToList();
+                            if (offers.Count > 0)
+                            {
+                                return offers;
+                            }
+                            offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word2) && i.Book.Author.ToUpper().Contains(word1) && i.Address.Name == city select i).ToList();
+                            if (offers.Count > 0)
+                            {
+                                return offers;
+                            }
+                        }
+                    }
+                }
+                offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(titleauthor) select i).ToList();
+                if (offers.Count > 0)
+                {
+                    return offers;
+                }
+                else
+                {
+                    offers = (from i in alloffers where i.Book.Author.ToUpper().Contains(titleauthor) select i).ToList();
+                    if (offers.Count > 0)
+                    {
+                        return offers;
+                    }
+                }
             }
-            long addressid = _context.User.Where(x => x.Id == userid).Select(x => x.Address_Id).FirstOrDefault();
-            var offer = new OfferEntity { Content = offermodel.Content, Price = offermodel.Price, Book_Id = id, ForSale = offermodel.ForSale, Address_Id = addressid, User_Id = userid, Image = offermodel.Image};
-            _context.Offer.Add(offer);
-            _context.SaveChangesAsync();
+            return offers;
+        }
+        public List<OffersListMP> GetSearchedOffersByFilters(List<OffersListMP> offers, long categoryid, uint lowprice, uint upprice, int type)
+        {
+            if(categoryid > 0)
+            {
+                offers = (from i in offers where i.Book.Category.Category_Id == categoryid select i).ToList();
+            }
+            if(lowprice > 0)
+            {
+                offers = (from i in offers where i.Price >= lowprice select i).ToList();
+            }
+            if (upprice > 0)
+            {
+                offers = (from i in offers where i.Price <= upprice select i).ToList();
+            }
+            if(type != 2)
+            {
+                if(type == 1)
+                {
+                    offers = (from i in offers where i.ForSale == true select i).ToList();
+                }
+                else if(type == 0)
+                {
+                    offers = (from i in offers where i.ForSale == false select i).ToList();
+                }
+            }
+            return offers;
         }
         public void AddCommentToOffer(string comment, string userid, long offerid)
         {
@@ -81,6 +192,135 @@ namespace WymianaKsiazek.Queries.OfferQueries
             commententity.Offer_Id = offerid;
             _context.OfferComments.Add(commententity);
             _context.SaveChanges();
+        }
+        public bool IsOfferFollowedByUser(long offerid, string userid)
+        {
+            var likedoffer = _context.UserLikedOffers.Where(x => x.Offer_Id == offerid && x.User_Id == userid).FirstOrDefault();
+            if(likedoffer == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        public async Task LikeOffer(string userid, long offerid)
+        {
+            UserLikedOffersEntity like = new UserLikedOffersEntity();
+            like.User_Id = userid;
+            like.Offer_Id = offerid;
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                _context.Add(like);
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+            }
+        }
+        public async Task UnLikeOffer(string userid, long offerid)
+        {
+            var like = _context.UserLikedOffers.Where(x => x.User_Id == userid && x.Offer_Id == offerid).FirstOrDefault();
+            if (like != null)
+            {
+                _context.UserLikedOffers.Remove(like);
+                await _context.SaveChangesAsync();
+            }
+        }
+        public List<AddBookMP> GetBooksToAdd(string title)
+        {
+            if (title == null || title == "")
+            {
+                return null;
+            }
+            title = title.ToUpper();
+            var books = _context.Book.Include(x => x.Category).Where(x => x.Title.ToUpper().Contains(title)).ToList();
+            List<AddBookMP> list = new List<AddBookMP>();
+            foreach(var i in books)
+            {
+                list.Add(new AddBookMP(i.Book_Id, i.Title, i.Author, i.Category_Id, i.Category.Category_Name));
+            }
+            return list;
+        }
+        public bool IsContentValid(string content)
+        {
+            string contentwithnospaces = "";
+            bool p = true;
+            for(int i=0; i<content.Length; i++)
+            {
+                if(content[i] != ' ')
+                {
+                    contentwithnospaces += content[i];
+                }
+            }
+            if(contentwithnospaces == "")
+            {
+                return false;
+            }
+            contentwithnospaces = contentwithnospaces.ToUpper();
+            string pathtofile = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/banishedwords.txt");
+            using (StreamReader reader = new StreamReader(pathtofile))
+            {
+                string line;
+                while((line = reader.ReadLine()) != null)
+                {
+                    if(contentwithnospaces.Contains(line))
+                    {
+                        p = false;
+                        break;
+                    }
+                }
+            }
+            return p;
+        }
+        public string SaveImage(IFormFile image)
+        {
+            if (image != null)
+            {
+                string imageName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+                string SavePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", imageName);
+                using (var stream = new FileStream(SavePath, FileMode.Create))
+                {
+                    image.CopyTo(stream);
+                }
+                return imageName;
+            }
+            return null;
+        }
+        public async Task<int> AddOffer(AddOffer offer, string userid)
+        {
+            var newoffer = new OfferEntity();
+            if(!IsContentValid(offer.addoffercontent))
+            {
+                return 1;
+            }
+            using(var transaction = _context.Database.BeginTransaction())
+            {
+                var user = _context.User.Include(x => x.Address).Where(x => x.Id == userid).FirstOrDefault();
+                if(user == null) return 2;
+                var countusersoffers = _context.Offer.Where(x => x.User_Id == userid).Count();
+                if(countusersoffers >= 4) return 3;
+                var bookid = _context.Book.Where(x => x.Title == offer.titleinput && x.Author == offer.authorinput).FirstOrDefault();
+                if(bookid == null) return 4;
+                newoffer.Image = SaveImage(offer.addofferimg);
+                newoffer.Book_Id = bookid.Book_Id;
+                newoffer.User_Id = userid;
+                newoffer.Address_Id = user.Address_Id;
+                newoffer.IsitAvailable = true;
+                newoffer.Price = Decimal.Parse(offer.price, CultureInfo.InvariantCulture);
+                if(offer.forsale == 1)
+                {
+                    newoffer.ForSale = true;
+                }
+                else
+                {
+                    newoffer.ForSale = false;
+                }
+                newoffer.Content = offer.addoffercontent;
+                _context.Add(newoffer);
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+            }
+            return 0;
         }
     }
 }
