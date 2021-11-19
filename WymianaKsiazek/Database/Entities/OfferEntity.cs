@@ -28,10 +28,12 @@ namespace WymianaKsiazek.Database.Entities
         public virtual BookEntity Book { get; set; }
         public virtual AddressEntity Address { get; set; }
         public virtual ICollection<OfferCommentsEntity> Comments { get; set; }
+        public virtual ICollection<UserLikedOffersEntity> UserLiked { get; set; }
         public OfferEntity()
         {
             CreatedOn = DateTime.UtcNow;
             Comments = new List<OfferCommentsEntity>();
+            UserLiked = new List<UserLikedOffersEntity>();
         }
     }
 }
