@@ -1,0 +1,81 @@
+﻿@{
+    int index = 0;
+}
+@using WymianaKsiazek.Models.MapperModels;
+@model dynamic
+<div class="offercategoryheader">@ViewBag.CategoryName - Oferty</div>
+<div class="offerscategory">
+    @if (Model.Offers.Count == 0)
+    {
+        <p>Brak ofert z książkami o danej kategorii</p>
+    }
+    @foreach (var i in Model.Offers)
+    {
+        index++;
+        <div class="offerwindow">
+            <div class="offerimage"><img class="offerpicture" src="~/images/@i.Image" alt="Image"></div>
+            <div class="offerbooktitle">@i.Book.Title</div>
+            <div class="offerbookauthor">@i.Book.Author</div>
+            <div class="offeruser">Dodano przez: <div class="offerusername">@i.User.UserName</div></div>
+            <div style="margin-top: 40px;"></div>
+            <div class="offercityanddate">@i.Address.Name - @i.DateFromat()</div>
+            <div style="clear: both;"></div>
+            @if (i.ForSale == true)
+            {
+                <div class="offertype">Sprzedaż</div>
+                <div class="offerprice">@i.Price zł</div>
+            }
+            else
+            {
+                <div class="offertype">Wymiana</div>
+            }
+            <div style="clear: both;"></div>
+            <button class="offerpreviewbutton" onclick="location.href = '@Url.Action("offer", "Offer", new { id = i.Offer_Id})'">Zobacz ofertę</button>
+        </div>
+        if (index % 4 == 0)
+        {
+            <div style="clear: both;"></div>
+        }
+    }
+    <div style="clear: both;"></div>
+    <div class="seealloffersbutton"><button class="moreoffersbutton">Zobacz wszystkie</button></div>
+</div>
+<div class="offercategoryheader">@ViewBag.CategoryName - Recenzje książek</div>
+<div class="books-window">
+    @foreach (var i in Model.Books)
+    {
+        <div class="book-info-window">
+            <div class="book-image-div">
+                <img src="~/images/BookImages/@i.Img" class="book-info-image">
+            </div>
+            <div class="book-moreinfo-window">
+                <div class="book-moreinfo-title">@i.Title</div>
+                <div class="book-moreinfo-author">@i.Author</div>
+                <div class="book-moreinfo-averageopinion-window">
+                    <div>Średnia ocena</div>
+                    <div style="display: inline-block;">
+                        @{
+                            uint averageopinion = i.Opinion.AverageOpinion();
+                            uint rest = 5 - averageopinion;
+                        }
+                        @for (uint j = 0; j < averageopinion; j++)
+                        {
+                            <div class="user-opinions-stars" style="color: orange;"><i class="fas fa-star"></i></div>
+                        }
+                        @for (uint j = 0; j < rest; j++)
+                        {
+                            <div class="user-opinions-stars"><i class="far fa-star"></i></div>
+                        }
+                        <div style="clear: both;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="book-seemoredetails-button-window">
+                <a asp-action="book" asp-controller="Book" asp-route-id="@i.Book_Id"><div class="classicbutton">Więcej szczegółów</div></a>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+    }
+</div>
+<div class="seealloffersbutton"><button class="moreoffersbutton">Zobacz wszystkie</button></div>
+<div style="height: 50px;"></div>
