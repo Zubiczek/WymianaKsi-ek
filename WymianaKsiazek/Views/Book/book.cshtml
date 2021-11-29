@@ -1,5 +1,8 @@
 @using WymianaKsiazek.Models.MapperModels;
 @model BookOpinionMP
+@{ 
+    string username = "";
+}
 <div class="help-div"></div>
 <div id="book-window">
     <div id="book-window-image">
@@ -59,7 +62,7 @@
                         if (isbookrated == false) {
                             $.ajax({
                                 type: "POST",
-                                url: '@Url.Action("AddOpinion", "Book")',
+                                url: '@Url.Action("AddOpinion", "Opinion")',
                                 data: { "value": value, "opinionid": $('#opinionidinput').val() },
                                 success: function (response) {
                                     if (response.success) {
@@ -119,42 +122,67 @@
             <div id="offerbyid-addcomment-window">
                 <form autocomplete="off" id="addcommentform">
                     <input class="writecommentinput" id="addcommentinput" name="addcommentinput" placeholder="Napisz komentarz...">
+                    <input type="hidden" id="offerid" name="offerid" value="@Model.Book_Id" />
+                    <input type="hidden" id="username" value="@username" />
+                    <input type="submit" class="addoffer-submit" value="Dodaj" />
                 </form>
             </div>
             <div id="offerbyid-comments">
-                <div class="offerbyid-comment">
-                    <div class="user-image-comment">
-                        <img src="~/images/user.png" class="usercommentimage">
-                        <div class="comment-user-nickname">Zubiczek</div>
-                    </div>
-                    <div class="comment-content">
-                        Bardzo dobra książka polecam bardzo każdemu
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                <div class="offerbyid-comment">
-                    <div class="user-image-comment">
-                        <img src="~/images/user.png" class="usercommentimage">
-                        <div class="comment-user-nickname">Zubiczek</div>
-                    </div>
-                    <div class="comment-content">
-                        Ciekawa lektura, polecam serdecznie
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                <div class="offerbyid-comment">
-                    <div class="user-image-comment">
-                        <img src="~/images/user.png" class="usercommentimage">
-                        <div class="comment-user-nickname">Zubiczek</div>
-                    </div>
-                    <div class="comment-content">
-                        Trochę nudna lektura, nieciekawie mi się czytało
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                <div class="showsmorecommentsbutton">Pokaż więcej</div>
+                @if (Model.Comments.Count == 0)
+                {
+                    <div style="text-align: center;">Brak komentarzy</div>
+                }
+                else
+                {
+                    foreach (var comment in Model.Comments)
+                    {
+                        <div class="offerbyid-comment">
+                            <div class="user-image-comment">
+                                <img src="~/images/user.png" class="usercommentimage">
+                                <div class="comment-user-nickname">@comment.User.UserName</div>
+                            </div>
+                            <div class="comment-content">
+                                @comment.Content
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>
 </div>
 <div class="help-div"></div>
+<script>
+    const form = document.querySelector('#addcommentform');
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("AddCommentBook", "Comment")',
+            data: { "addcommentinput": $('#addcommentinput').val(), "bookid": $('#bookid').val() },
+            success: function (response) {
+                if (response.success) {
+                    let username = response.username;
+                    let comment = $('#addcommentinput').val();
+                    let arecommentsexist = $('#arecommentsexist').val();
+                    let userimg = document.getElementById("userimage").src;
+                    if (arecommentsexist == "no") {
+                        $('#offerbyid-comments').empty();
+                    }
+                    $('#offerbyid-comments').prepend($('<div class="offerbyid-comment"><div class="user-image-comment"><img src="' + userimg +'" class="usercommentimage"><div class="comment-user-nickname">' + username + '</div></div><div class="comment-content">' + comment + '</div><div style="clear: both;"></div></div>').fadeIn('slow'));
+                }
+                else {
+                    alert("Coś poszło nie tak! Kod: " + response.responseText);
+                }
+            },
+            failure: function (response) {
+                alert("Fail " + response.responseText);
+            },
+            error: function (response) {
+                alert("Error " + response.responseText);
+            }
+        });
+        $('#addcommentinput').empty();
+    });
+</script>
