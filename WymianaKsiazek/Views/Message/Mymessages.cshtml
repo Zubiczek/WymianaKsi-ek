@@ -1,0 +1,120 @@
+﻿@using WymianaKsiazek.Models.MapperModels;
+@model List<UserConversationsMP> 
+@{ 
+    string myid = ViewBag.MyId;
+}
+<div class="mymessages-window">
+    <div class="mymessages-unseen">
+        <h2>Nieprzeczytane wiadomości</h2>
+        @foreach (var i in Model)
+        {
+            if (!i.IsAllMessagesRead && i.LastMessageFrom_UserId != myid)
+            {
+                UserMP otheruser;
+                if (i.User1.Id == myid) otheruser = i.User2;
+                else otheruser = i.User1;
+            <div class="mymessages-conversation-info">
+                <div class="mymessages-user-image">
+                    <img src="~/images/@otheruser.Img" class="message-user-image">
+                </div>
+                <div class="mymessages-user">
+                    <div class="message-user-nickname">
+                        <h3>
+                            @if (i.User1.Id == myid)
+                            {
+                                @i.User2.UserName
+                            }
+                            else
+                            {
+                                @i.User1.UserName
+                            }
+                        </h3>
+                    </div>
+                    @if (i.LastMessage == null)
+                    {
+                        <div class="message-lastmessage">
+                            Brak wiadomości
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="message-lastmessage">
+                            <div>
+                                @if (i.LastMessageFrom_UserId == myid)
+                                {
+                                    <p>Ty</p>
+                                }
+                                else
+                                {
+                                    <p>Rozmówca</p>
+                                }
+                            </div>
+                            @i.LastMessage.Text
+                        </div>
+                    }
+                </div>
+                <div class="seeconversation-button">
+                    <a asp-action="Chat" asp-controller="Message" asp-route-id="@i.Id"><div class="classicbutton">Przejdź do konwersacji</div></a>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            }
+        }
+        <div style="height: 20px;"></div>
+    </div>
+    <div class="mymessages-last-conversations">
+        <h2>Ostatnie konwersacje</h2>
+        @foreach (var i in Model)
+        {
+            if (i.IsAllMessagesRead || (i.LastMessageFrom_UserId == myid && i.IsAllMessagesRead == false))
+            {
+            <div class="mymessages-conversation-info">
+                <div class="mymessages-user-image">
+                    <img src="~/images/user.png" class="message-user-image">
+                </div>
+                <div class="mymessages-user">
+                    <div class="message-user-nickname">
+                        <h3>
+                            @if (i.User1.Id == myid)
+                            {
+                                @i.User2.UserName
+                            }
+                            else
+                            {
+                                @i.User1.UserName
+                            }
+                        </h3>
+                    </div>
+                    @if (i.LastMessage == null)
+                    {
+                        <div class="message-lastmessage">
+                            Brak wiadomości
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="message-lastmessage">
+                            <div>
+                                @if (i.LastMessageFrom_UserId == myid)
+                                {
+                                    <p>Ty</p>
+                                }
+                                else
+                                {
+                                    <p>Rozmówca</p>
+                                }
+                            </div>
+                            @i.LastMessage.Text
+                        </div>
+                    }
+                </div>
+                <div class="seeconversation-button">
+                    <a asp-action="Chat" asp-controller="Message" asp-route-id="@i.Id"><div class="classicbutton">Przejdź do konwersacji</div></a>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            }
+        }
+    </div>
+    <div style="height: 50px;"></div>
+</div>
