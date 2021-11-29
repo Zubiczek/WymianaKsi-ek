@@ -69,7 +69,7 @@ namespace WymianaKsiazek.Queries.OfferQueries
         }
         public OfferMP GetOfferById(long offerid)
         {
-            var offer = _context.Offer.Include(x => x.User).ThenInclude(x => x.UserOpinion).Include(x => x.Book).Include(x => x.Address).Include(x => x.Comments).Where(x => x.Offer_Id == offerid).FirstOrDefault();
+            var offer = _context.Offer.Include(x => x.User).ThenInclude(x => x.UserOpinion).Include(x => x.Book).Include(x => x.Address).Include(x => x.Comments).ThenInclude(x => x.User).Where(x => x.Offer_Id == offerid).FirstOrDefault();
             return _mapper.Map<OfferMP>(offer);
         }
         public List<OffersListMP> GetSearchesOffers(string titleauthor, string city)
@@ -183,48 +183,6 @@ namespace WymianaKsiazek.Queries.OfferQueries
                 }
             }
             return offers;
-        }
-        public void AddCommentToOffer(string comment, string userid, long offerid)
-        {
-            OfferCommentsEntity commententity = new OfferCommentsEntity();
-            commententity.Content = comment;
-            commententity.User_Id = userid;
-            commententity.Offer_Id = offerid;
-            _context.OfferComments.Add(commententity);
-            _context.SaveChanges();
-        }
-        public bool IsOfferFollowedByUser(long offerid, string userid)
-        {
-            var likedoffer = _context.UserLikedOffers.Where(x => x.Offer_Id == offerid && x.User_Id == userid).FirstOrDefault();
-            if(likedoffer == null)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
-        public async Task LikeOffer(string userid, long offerid)
-        {
-            UserLikedOffersEntity like = new UserLikedOffersEntity();
-            like.User_Id = userid;
-            like.Offer_Id = offerid;
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                _context.Add(like);
-                await _context.SaveChangesAsync();
-                transaction.Commit();
-            }
-        }
-        public async Task UnLikeOffer(string userid, long offerid)
-        {
-            var like = _context.UserLikedOffers.Where(x => x.User_Id == userid && x.Offer_Id == offerid).FirstOrDefault();
-            if (like != null)
-            {
-                _context.UserLikedOffers.Remove(like);
-                await _context.SaveChangesAsync();
-            }
         }
         public List<AddBookMP> GetBooksToAdd(string title)
         {
