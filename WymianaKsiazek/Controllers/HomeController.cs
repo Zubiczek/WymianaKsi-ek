@@ -14,32 +14,36 @@ using WymianaKsiazek.Database.Entities;
 using WymianaKsiazek.Queries.BookQueries;
 using System.Dynamic;
 using WymianaKsiazek.Queries.UserQueries;
+using WymianaKsiazek.Functions;
 
 namespace WymianaKsiazek.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly Context _context;
         private readonly IOfferQueries _offerQueries;
         private readonly IBookQueries _bookQueries;
-        private readonly IUserQueries _userQueries;
+        private readonly ILoggedInUser _loggedUser;
 
-        public HomeController(ILogger<HomeController> logger, Context context, IOfferQueries offerQueries, IBookQueries bookQueries
-            , IUserQueries userQueries)
+        public HomeController(ILogger<HomeController> logger, IOfferQueries offerQueries, IBookQueries bookQueries,
+            ILoggedInUser loggedUser)
         {
             _logger = logger;
-            _context = context;
             _offerQueries = offerQueries;
             _bookQueries = bookQueries;
-            _userQueries = userQueries;
+            _loggedUser = loggedUser;
         }
 
         public IActionResult Index()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             var offers = _offerQueries.GetAllOffers();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             return View(offers);
         }
         public IActionResult Category(long id)
@@ -49,8 +53,13 @@ namespace WymianaKsiazek.Controllers
             {
                 return RedirectToAction("Error", "Home");
             }
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             ViewBag.CategoryName = categoryname;
             var books = _bookQueries.GetBooksByCategory(id);
             var offers = _offerQueries.GetOffersByCategory(id);
@@ -59,33 +68,17 @@ namespace WymianaKsiazek.Controllers
             model.Books = books;
             return View(model);
         }
-        public IActionResult Test()
-        {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
-            var offer = _offerQueries.GetOfferById(1);
-            return View(offer);
-        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            ViewBag.IsUserLoggedIn = IsUserLoggedIn();
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-        private bool IsUserLoggedIn()
-        {
-            bool p = false;
-            string token = HttpContext.Session.GetString("Token");
-            if (token != null)
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
             {
-                p = true;
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
-            return p;
-        }
-        private string GetUserId()
-        {
-            var refreshtoken = HttpContext.Session.GetString("RefreshToken");
-            string userid = _context.RefreshTokens.Where(x => x.Token == refreshtoken).Select(x => x.UserId).FirstOrDefault();
-            return userid;
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
