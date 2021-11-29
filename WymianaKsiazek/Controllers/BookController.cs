@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -7,8 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WymianaKsiazek.Database;
+using WymianaKsiazek.Functions;
 using WymianaKsiazek.Models.MapperModels;
 using WymianaKsiazek.Queries.BookQueries;
+using WymianaKsiazek.Queries.OpinionQueries;
+using WymianaKsiazek.Queries.UserQueries;
 
 namespace WymianaKsiazek.Controllers
 {
@@ -16,12 +19,15 @@ namespace WymianaKsiazek.Controllers
     {
         private readonly ILogger<OfferController> _logger;
         private readonly IBookQueries _bookQueries;
-        private readonly Context _context;
-        public BookController(ILogger<OfferController> logger, IBookQueries bookQueries, Context context)
+        private readonly IOpinionQueries _opinionQueries;
+        private readonly ILoggedInUser _loggedUser;
+        public BookController(ILogger<OfferController> logger, IBookQueries bookQueries,
+            IOpinionQueries opinionQueries, ILoggedInUser loggedUser)
         {
             _logger = logger;
             _bookQueries = bookQueries;
-            _context = context;
+            _opinionQueries = opinionQueries;
+            _loggedUser = loggedUser;
         }
         public IActionResult Reviews(string author, string title)
         {
@@ -38,9 +44,13 @@ namespace WymianaKsiazek.Controllers
             {
                 books = _bookQueries.GetBooks();
             }
-            //var books = _bookQueries.GetBooks();
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             TempData["currentbooks"] = JsonConvert.SerializeObject(books);
             return View(books);
         }
@@ -80,53 +90,20 @@ namespace WymianaKsiazek.Controllers
             {
                 return RedirectToAction("Error", "Home");
             }
-            bool ifuserloggedin = IsUserLoggedIn();
-            ViewBag.IsUserLoggedIn = ifuserloggedin;
-            if(ifuserloggedin == true)
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin == true)
             {
-                string userid = GetUserId();
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+                string userid = _loggedUser.GetUserId();
                 if (userid == null || userid == "")
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                ViewBag.UserOpinion = _bookQueries.GetUserOpinionAboutBook(id, userid);
+                ViewBag.UserOpinion = _opinionQueries.GetUserOpinionAboutBook(id, userid);
             }
             return View(book);
-        }
-        [HttpPost]
-        public async Task<IActionResult> AddOpinion(int value, string opinionid)
-        {
-            long opinion_id = (long)Convert.ToDouble(opinionid);
-            if (IsUserLoggedIn() == false)
-            {
-                return Json(new { success = false, responseText = "Unauthorized!"});
-            }
-            else
-            {
-                string userid = GetUserId();
-                if (userid == null || userid == "")
-                {
-                    return Json(new { success = false, responseText = "Server Error!" });
-                }
-                await _bookQueries.AddUserOpinionAboutBook(value, opinion_id, userid);
-                return Json(new { success = true });
-            }
-        }
-        private bool IsUserLoggedIn()
-        {
-            bool p = false;
-            string token = HttpContext.Session.GetString("Token");
-            if (token != null)
-            {
-                p = true;
-            }
-            return p;
-        }
-        private string GetUserId()
-        {
-            var refreshtoken = HttpContext.Session.GetString("RefreshToken");
-            string userid = _context.RefreshTokens.Where(x => x.Token == refreshtoken).Select(x => x.UserId).FirstOrDefault();
-            return userid;
         }
     }
 }
