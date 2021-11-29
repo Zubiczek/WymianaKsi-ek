@@ -23,34 +23,38 @@ using Microsoft.AspNetCore.Http;
 using WymianaKsiazek.Queries.UserQueries;
 using WymianaKsiazek.Models.EmailModels;
 using System.Dynamic;
+using WymianaKsiazek.Queries.MessageQueries;
+using WymianaKsiazek.Queries.OpinionQueries;
+using WymianaKsiazek.Functions;
 
 namespace WymianaKsiazek.Controllers
 {
     public class UserController : Controller
     {
         private readonly ILogger<UserController> _logger;
-        private readonly Context _context;
         private readonly UserManager<UserEntity> _userManager;
         private readonly SignInManager<UserEntity> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly IUserQueries _userQueries;
-        private readonly IMailService _mailService;
-        public UserController(ILogger<UserController> logger, Context context, UserManager<UserEntity> userManager, 
-            SignInManager<UserEntity> signInManager, IConfiguration configuration, IUserQueries userQueries, IMailService mailService)
+        private readonly IOpinionQueries _opinionQueries;
+        private readonly ILoggedInUser _loggedUser;
+        public UserController(ILogger<UserController> logger, UserManager<UserEntity> userManager, 
+            SignInManager<UserEntity> signInManager, IConfiguration configuration, IUserQueries userQueries,
+            IOpinionQueries opinionQueries, ILoggedInUser loggedUser)
         {
             _logger = logger;
-            _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _userQueries = userQueries;
-            _mailService = mailService;
+            _opinionQueries = opinionQueries;
+            _loggedUser = loggedUser;
         }
         public IActionResult Register()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin == true)
+            if (isuerloggedin)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -60,9 +64,9 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult Login()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin == true)
+            if (isuerloggedin)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -72,26 +76,41 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult EmailConfirmationPage(string email)
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             ViewBag.Email = email;
             return View();
         }
         public IActionResult EmailConfirmedPage()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             return View();
         }
         public IActionResult MyProfile()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin == false)
+            if (!isuerloggedin)
             {
                 return RedirectToAction("Login", "User");
             }
-            string userid = GetUserId();
+            else
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
+            string userid = _loggedUser.GetUserId();
             if (userid == null)
             {
                 return RedirectToAction("Error", "Home");
@@ -111,9 +130,9 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult ForgotPassword()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin == true)
+            if (isuerloggedin)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -123,15 +142,25 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult ForgotPasswordInformation(string email)
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             ViewBag.Email = email;
             return View();
         }
         public IActionResult ResetPassword(string userId, string token)
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             if (userId == null || token == null)
             {
                 return RedirectToAction("Error", "Home");
@@ -141,11 +170,16 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult ChangePassword()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (IsUserLoggedIn() == false)
+            if (!isuerloggedin)
             {
                 return RedirectToAction("Error", "Home");
+            }
+            else
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
             ViewBag.Error = TempData["PasswordError"];
             TempData["PasswordError"] = null;
@@ -158,60 +192,20 @@ namespace WymianaKsiazek.Controllers
             {
                 return RedirectToAction("Error", "Home");
             }
-            bool isuserloggedin = IsUserLoggedIn();
+            bool isuserloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuserloggedin;
-            if(isuserloggedin == true)
+            if(isuserloggedin)
             {
-                string userid = GetUserId();
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+                string userid = _loggedUser.GetUserId();
                 if(userid == null)
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                ViewBag.UserOpinion = _userQueries.GetUserOpinionAboutUser(id, userid);
+                ViewBag.UserOpinion = _opinionQueries.GetUserOpinionAboutUser(id, userid);
             }
             return View(user);
-        }
-        public async Task<IActionResult> Chat(long id)
-        {
-            bool isuserloggedin = IsUserLoggedIn();
-            if (!isuserloggedin) return RedirectToAction("Login", "User");
-            var user = await _userQueries.GetUserById(GetUserId());
-            if (user == null) return RedirectToAction("Error", "Home");
-            var conversation = _userQueries.GetConversationById(id);
-            if(conversation == null) return RedirectToAction("Error", "Home");
-            if(user.Id != conversation.User1.Id && user.Id != conversation.User2.Id) return RedirectToAction("Error", "Home");
-            ViewBag.MyId = user.Id;
-            return View(conversation);
-        }
-        public async Task<IActionResult> SendMessage(string text, string convid)
-        {
-            if(text == null || text == "") return BadRequest();
-            if(!IsUserLoggedIn()) return BadRequest();
-            string userid = GetUserId();
-            if(userid == null || userid == "") return BadRequest();
-            long conv_id = (long)Convert.ToDouble(convid);
-            await _userQueries.CreateMessage(conv_id, text, userid);
-            return Ok();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddOpinionAboutUser(int value, string opinionid)
-        {
-            long opinion_id = (long)Convert.ToDouble(opinionid);
-            if(IsUserLoggedIn() == false)
-            {
-                return Json(new { success = false, responseText = "Unauthorized!" });
-            }
-            else
-            {
-                string userid = GetUserId();
-                if (userid == null || userid == "")
-                {
-                    return Json(new { success = false, responseText = "Server Error!" });
-                }
-                await _userQueries.AddUserOpinionAboutUser(value, opinion_id, userid);
-                return Json(new { success = true });
-            }
         }
         [AllowAnonymous]
         [HttpPost]
@@ -280,6 +274,9 @@ namespace WymianaKsiazek.Controllers
             }
             HttpContext.Session.SetString("Token", token.AccessToken);
             HttpContext.Session.SetString("RefreshToken", token.RefreshToken);
+            HttpContext.Session.SetString("Username", token.Email);
+            HttpContext.Session.SetString("UserImage", token.Img);
+            HttpContext.Session.SetString("UserId", token.Id);
             return RedirectToAction("Index", "Home");
         }
         public async Task<IActionResult> LogOut()
@@ -298,6 +295,9 @@ namespace WymianaKsiazek.Controllers
             {
                 HttpContext.Session.Remove("Token");
                 HttpContext.Session.Remove("RefreshToken");
+                HttpContext.Session.Remove("Username");
+                HttpContext.Session.Remove("UserImage");
+                HttpContext.Session.Remove("UserId");
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -337,7 +337,7 @@ namespace WymianaKsiazek.Controllers
             {
                 return RedirectToAction("Error", "Home");
             }
-            string userid = GetUserId();
+            string userid = _loggedUser.GetUserId();
             if(userid == null)
             {
                 return RedirectToAction("Error", "Home");
@@ -354,22 +354,6 @@ namespace WymianaKsiazek.Controllers
             }
             TempData["ChangeInfo"] = "Hasło zmienione pomyślnie!";
             return RedirectToAction("MyProfile", "User");
-        }
-        private bool IsUserLoggedIn()
-        {
-            bool p = false;
-            string token = HttpContext.Session.GetString("Token");
-            if (token != null)
-            {
-                p = true;
-            }
-            return p;
-        }
-        private string GetUserId()
-        {
-            var refreshtoken = HttpContext.Session.GetString("RefreshToken");
-            string userid = _context.RefreshTokens.Where(x => x.Token == refreshtoken).Select(x => x.UserId).FirstOrDefault();
-            return userid;
         }
     }
 }
