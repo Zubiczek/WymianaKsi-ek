@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,37 +13,45 @@ using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using WymianaKsiazek.Database;
 using System.Diagnostics;
+using WymianaKsiazek.Queries.UserQueries;
+using WymianaKsiazek.Queries.LikeQueries;
+using WymianaKsiazek.Functions;
 
 namespace WymianaKsiazek.Controllers
 {
     public class OfferController : Controller
     {
         private readonly ILogger<OfferController> _logger;
-        private readonly Context _context;
         private readonly IOfferQueries _offerQueries;
-        public OfferController(ILogger<OfferController> logger, IOfferQueries offerQueries, Context context)
+        private readonly ILikeQueries _likeQueries;
+        private readonly ILoggedInUser _loggedUser;
+        public OfferController(ILogger<OfferController> logger, IOfferQueries offerQueries,
+            ILikeQueries likeQueries, ILoggedInUser loggedUser)
         {
             _logger = logger;
             _offerQueries = offerQueries;
-            _context = context;
+            _likeQueries = likeQueries;
+            _loggedUser = loggedUser;
         }
         public IActionResult offer(long id)
         {
             var offer = _offerQueries.GetOfferById(id);
-            var isuserloggedin = IsUserLoggedIn();
+            var isuserloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuserloggedin;
             if (offer == null)
             {
                 return RedirectToAction("Error", "Home");
             }
-            if(isuserloggedin == true)
+            if(isuserloggedin)
             {
-                string userid = GetUserId();
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+                string userid = _loggedUser.GetUserId();
                 if(userid == null || userid == "")
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                ViewBag.IsOfferLikedByUser = _offerQueries.IsOfferFollowedByUser(id, userid);
+                ViewBag.IsOfferLikedByUser = _likeQueries.IsOfferFollowedByUser(id, userid);
             }
             return View(offer);
         }
@@ -58,10 +66,14 @@ namespace WymianaKsiazek.Controllers
             {
                 offers = _offerQueries.GetOffers();
             }
-            //var offers = _offerQueries.GetOffers();
             TempData["currentoffers"] = JsonConvert.SerializeObject(offers);
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (isuerloggedin)
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             return View(offers);
         }
         public IActionResult GetPartialSearchView(string searchbookbox, string searchlocationbox)
@@ -95,36 +107,20 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult AddOffer()
         {
-            bool isuerloggedin = IsUserLoggedIn();
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
             if(!isuerloggedin)
             {
                 return RedirectToAction("Login", "User");
             }
-            ViewBag.IsUserLoggedIn = isuerloggedin;
+            else
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+            }
             ViewBag.Error = TempData["addoffererror"];
             TempData["addoffererror"] = null;
             return View();
-        }
-        [HttpPost]
-        public async Task<IActionResult> LikeOffer(long offerid)
-        {
-            if (IsUserLoggedIn() == false)
-            {
-                return Json(new { success = false, responseText = "Unauthorized!" });
-            }
-            else
-            {
-                string userid = GetUserId();
-                if (userid == null || userid == "")
-                {
-                    return Json(new { success = false, responseText = "Server Error!" });
-                }
-                else
-                {
-                    await _offerQueries.LikeOffer(userid, offerid);
-                    return Json(new { success = true });
-                }
-            }
         }
         [HttpGet]
         public IActionResult GetBooks(string title)
@@ -133,30 +129,9 @@ namespace WymianaKsiazek.Controllers
             return Json(books);
         }
         [HttpPost]
-        public async Task<IActionResult> UnLikeOffer(long offerid)
-        {
-            if (IsUserLoggedIn() == false)
-            {
-                return Json(new { success = false, responseText = "Unauthorized!" });
-            }
-            else
-            {
-                string userid = GetUserId();
-                if (userid == null || userid == "")
-                {
-                    return Json(new { success = false, responseText = "Server Error!" });
-                }
-                else
-                {
-                    await _offerQueries.UnLikeOffer(userid, offerid);
-                    return Json(new { success = true });
-                }
-            }
-        }
-        [HttpPost]
         public async Task<IActionResult> AddNewOffer(AddOffer model)
         {
-            string userid = GetUserId();
+            string userid = _loggedUser.GetUserId();
             if(userid == null || userid == "")
             {
                 return RedirectToAction("Error", "Home");
@@ -182,22 +157,6 @@ namespace WymianaKsiazek.Controllers
                 return RedirectToAction("AddOffer", "Offer");
             }
             return RedirectToAction("MyProfile", "User");
-        }
-        private bool IsUserLoggedIn()
-        {
-            bool p = false;
-            string token = HttpContext.Session.GetString("Token");
-            if (token != null)
-            {
-                p = true;
-            }
-            return p;
-        }
-        private string GetUserId()
-        {
-            var refreshtoken = HttpContext.Session.GetString("RefreshToken");
-            string userid = _context.RefreshTokens.Where(x => x.Token == refreshtoken).Select(x => x.UserId).FirstOrDefault();
-            return userid;
         }
     }
 }
