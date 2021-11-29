@@ -33,11 +33,13 @@
         else
         {
             <div class="user-panel" style="color: white;">
-                <div class="my-message-panel">
-                    <i class="far fa-envelope" style="float: left;"></i>
-                    <div class="messages-header">Wiadomości</div>
-                    <div style="clear: both;"></div>
-                </div>
+                <a asp-action="Mymessages" asp-controller="Message">
+                    <div class="my-message-panel">
+                        <i class="far fa-envelope" style="float: left;"></i>
+                        <div class="messages-header">Wiadomości</div>
+                        <div style="clear: both;"></div>
+                    </div>
+                </a>
                 <div class="sign-out-div">
                     <i class="fas fa-sign-out-alt" style="float: left;"></i>
                     <div class="sign-out-header"><a asp-action="LogOut" asp-controller="User" style="color: white;">Wyloguj</a></div>
@@ -45,8 +47,8 @@
                 </div>
                 <a asp-action="MyProfile" asp-controller="User">
                     <div class="user">
-                        <div class="user-image"><img src="~/images/user.png" height="30px" width="30px"></div>
-                        <div class="user-nickname">Zubiczek</div>
+                        <div class="user-image"><img src="~/images/@ViewBag.UserImg" height="30px" width="30px" id="userimage"></div>
+                        <div class="user-nickname">@ViewBag.Username</div>
                         <div class="user-myprofile">Mój Profil</div>
                         <div style="clear: both;"></div>
                     </div>
@@ -98,6 +100,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!--<script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>-->
+    <script src="~/js/chat.js"></script>
     @RenderSection("Scripts", required: false)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
 </body>
