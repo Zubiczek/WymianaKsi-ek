@@ -1,5 +1,9 @@
 @using WymianaKsiazek.Models.MapperModels;
 @model OfferMP
+@{ 
+    long offerid = Model.Offer_Id;
+    string username = Model.User.UserName;
+}
 <div id="offerbyid-window">
     <div id="offerbyid-image">
         <img src="~/images/@Model.Image" height="385px" width="385px">
@@ -34,7 +38,7 @@
                 </div>
             </div>
             <div id="user-profile-options-window">
-                <div class="user-profile-option-button">Wyślij wiadomość</div>
+                <a asp-action="LookForConversation" asp-controller="User" asp-route-userid="@Model.User.Id"><div class="user-profile-option-button">Wyślij wiadomość</div></a>
                 <a asp-action="Profile" asp-controller="User" asp-route-id="@Model.User.Id"><div class="user-profile-option-button">Zobacz profil</div></a>
                 <div style="clear: both;"></div>
             </div>
@@ -90,7 +94,7 @@
             if (canusebutton == true) {
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("LikeOffer", "Offer")',
+                    url: '@Url.Action("LikeOffer", "Follow")',
                     data: { "offerid": @Model.Offer_Id },
                     success: function (response) {
                         if (response.success) {
@@ -114,7 +118,7 @@
             if (canusebutton == true) {
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("UnLikeOffer", "Offer")',
+                    url: '@Url.Action("UnLikeOffer", "Follow")',
                     data: { "offerid": @Model.Offer_Id },
                     success: function (response) {
                         if (response.success) {
@@ -140,43 +144,70 @@
             <h2>Komentarze</h2>
             <div id="offerbyid-addcomment-window">
                 <form autocomplete="off" id="addcommentform">
-                    <input class="writecommentinput" id="addcommentinput" name="addcommentinput" placeholder="Napisz komentarz...">
+                    <input class="writecommentinput" id="addcommentinput" name="addcommentinput" placeholder="Napisz komentarz..." required>
+                    <input type="hidden" id="offerid" name="offerid" value="@offerid"/>
+                    <input type="hidden" id="username" value="@username"/>
+                    <input type="submit" class="addoffer-submit" value="Dodaj"/>
                 </form>
             </div>
             <div id="offerbyid-comments">
-                <div class="offerbyid-comment">
-                    <div class="user-image-comment">
-                        <img src="images/user.png" class="usercommentimage">
-                        <div class="comment-user-nickname">Zubiczek</div>
-                    </div>
-                    <div class="comment-content">
-                        Polecam oferty od tego użytkownika
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                <div class="offerbyid-comment">
-                    <div class="user-image-comment">
-                        <img src="images/user.png" class="usercommentimage">
-                        <div class="comment-user-nickname">Zubiczek</div>
-                    </div>
-                    <div class="comment-content">
-                        Polecam oferty od tego użytkownika
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                <div class="offerbyid-comment">
-                    <div class="user-image-comment">
-                        <img src="images/user.png" class="usercommentimage">
-                        <div class="comment-user-nickname">Zubiczek</div>
-                    </div>
-                    <div class="comment-content">
-                        Polecam oferty od tego użytkownika
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                <div class="showsmorecommentsbutton">Pokaż więcej</div>
+                @if (Model.Comments.Count == 0)
+                {
+                    <div style="text-align: center;">Brak komentarzy</div>
+                    <input type="hidden" id="arecommentsexist" value="no" />
+                }
+                else
+                {
+                    foreach (var comment in Model.Comments)
+                    {
+                        <input type="hidden" id="arecommentsexist" value="yes" />
+                        <div class="offerbyid-comment">
+                            <div class="user-image-comment">
+                                <img src="~/images/user.png" class="usercommentimage">
+                                <div class="comment-user-nickname">@comment.User.UserName</div>
+                            </div>
+                            <div class="comment-content">
+                                @comment.Content
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>
 </div>
-<div style="height: 50px; background: rgb(199, 229, 241);"></div>
+<div class="help-div"></div>
+<script>
+    const form = document.querySelector('#addcommentform');
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("AddComment", "Comment")',
+            data: { "addcommentinput": $('#addcommentinput').val(), "offerid": $('#offerid').val() },
+            success: function (response) {
+                if (response.success) {
+                    let username = response.username;
+                    let comment = $('#addcommentinput').val();
+                    let arecommentsexist = $('#arecommentsexist').val();
+                    let userimg = document.getElementById("userimage").src;
+                    if (arecommentsexist == "no") {
+                        $('#offerbyid-comments').empty();
+                    }
+                    $('#offerbyid-comments').prepend($('<div class="offerbyid-comment"><div class="user-image-comment"><img src="' + userimg +'" class="usercommentimage"><div class="comment-user-nickname">' + username + '</div></div><div class="comment-content">' + comment + '</div><div style="clear: both;"></div></div>').fadeIn('slow'));
+                }
+                else {
+                    alert("Coś poszło nie tak! Kod: " + response.responseText);
+                }
+            },
+            failure: function (response) {
+                alert("Fail " + response.responseText);
+            },
+            error: function (response) {
+                alert("Error " + response.responseText);
+            }
+        });
+        $('#addcommentinput').empty();
+    });
+</script>
