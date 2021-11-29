@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +30,8 @@ namespace WymianaKsiazek.Mapper
                 cfg.CreateMap<UserOpinionsEntity, UserOpinionsMP>();
                 cfg.CreateMap<ConversationEntity, ConversationMP>();
                 cfg.CreateMap<MessageEntity, MessageMP>();
+                cfg.CreateMap<MessageEntity, LastMessageMP>();
+                cfg.CreateMap<ConversationEntity, UserConversationsMP>();
             }).CreateMapper();
     }
 }
