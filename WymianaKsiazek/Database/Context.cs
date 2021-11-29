@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +29,9 @@ namespace WymianaKsiazek.Database
         public DbSet<UserLikedOffersEntity> UserLikedOffers { get; set; }
         public DbSet<ConversationEntity> Conversations { get; set; }
         public DbSet<MessageEntity> Messages { get; set; }
+        public DbSet<ReportReasonsEntity> ReportReasons { get; set; }
+        public DbSet<UserReportsEntity> UserReports { get; set; }
+        public DbSet<OfferReportsEntity> OfferReports { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -76,11 +79,25 @@ namespace WymianaKsiazek.Database
             builder.Entity<UserLikedOffersEntity>().HasOne(x => x.User).WithMany(x => x.LikedOffers).HasForeignKey(x => x.User_Id);
             builder.Entity<UserLikedOffersEntity>().HasOne(x => x.Offer).WithMany(x => x.UserLiked).HasForeignKey(x => x.Offer_Id);
             //ConversationEntity
+            builder.Entity<ConversationEntity>().HasKey(x => x.Id);
             builder.Entity<ConversationEntity>().HasOne(x => x.User1).WithMany(x => x.MyConversations).HasForeignKey(x => x.User1_Id);
             builder.Entity<ConversationEntity>().HasOne(x => x.User2).WithMany(x => x.ConversationsWith).HasForeignKey(x => x.User2_Id);
             //MessageEntity
+            builder.Entity<MessageEntity>().HasKey(x => x.Id);
             builder.Entity<MessageEntity>().HasOne(x => x.User).WithMany(x => x.Messages).HasForeignKey(x => x.User_Id);
             builder.Entity<MessageEntity>().HasOne(x => x.Conversation).WithMany(x => x.Messages).HasForeignKey(x => x.Conv_Id);
+            //ReportReasonsEntity
+            builder.Entity<ReportReasonsEntity>().HasKey(x => x.Reason_Id);
+            //UserReportsEntity
+            builder.Entity<UserReportsEntity>().HasKey(x => x.Id);
+            builder.Entity<UserReportsEntity>().HasOne(x => x.Reason).WithMany(x => x.UserReports).HasForeignKey(x => x.Reason_Id);
+            builder.Entity<UserReportsEntity>().HasOne(x => x.ReportedUser).WithMany(x => x.BeenReported).HasForeignKey(x => x.ReportedUser_Id);
+            builder.Entity<UserReportsEntity>().HasOne(x => x.UserWhoReported).WithMany(x => x.Reported).HasForeignKey(x => x.UserWhoReported_Id);
+            //OfferReportsEntity
+            builder.Entity<OfferReportsEntity>().HasKey(x => x.Id);
+            builder.Entity<OfferReportsEntity>().HasOne(x => x.Reason).WithMany(x => x.OfferReports).HasForeignKey(x => x.Reason_Id);
+            builder.Entity<OfferReportsEntity>().HasOne(x => x.Offer).WithMany(x => x.Reports).HasForeignKey(x => x.Offer_Id);
+            builder.Entity<OfferReportsEntity>().HasOne(x => x.User).WithMany(x => x.ReportedOffers).HasForeignKey(x => x.User_Id);
         }
     }
 }
