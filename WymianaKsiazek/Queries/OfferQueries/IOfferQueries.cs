@@ -18,12 +18,8 @@ namespace WymianaKsiazek.Queries.OfferQueries
         public List<OffersListMP> GetSearchedOffers(string bookname);
         public List<OffersListMP> GetOffersByCategory(long id);
         public OfferMP GetOfferById(long offerid);
-        public void AddCommentToOffer(string comment, string userid, long offerid);
         public List<OffersListMP> GetSearchesOffers(string titleauthor, string city);
         public List<OffersListMP> GetSearchedOffersByFilters(List<OffersListMP> offers, long categoryid, uint lowprice, uint upprice, int type);
-        public bool IsOfferFollowedByUser(long offerid, string userid);
-        public Task LikeOffer(string userid, long offerid);
-        public Task UnLikeOffer(string userid, long offerid);
         public List<AddBookMP> GetBooksToAdd(string title);
         public bool IsContentValid(string content);
         public string SaveImage(IFormFile image);
