@@ -22,6 +22,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using WymianaKsiazek.Queries.EmailQueries;
 
 namespace WymianaKsiazek.Queries.UserQueries
 {
@@ -29,23 +30,19 @@ namespace WymianaKsiazek.Queries.UserQueries
     {
         private readonly IMapper _mapper;
         private readonly Context _context;
-        private readonly IMailService _mailService;
         private readonly UserManager<UserEntity> _userManager;
         private readonly SignInManager<UserEntity> _signInManager;
         private readonly IConfiguration _configuration;
-        private readonly IUrlHelper _urlHelper;
-        private HttpRequest _request;
+        private readonly IEmailQueries _emailQueries;
         public UserQueries(IMapper mapper, Context context, UserManager<UserEntity> userManager,
-            SignInManager<UserEntity> signInManager, IConfiguration configuration, IMailService mailService, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
+            SignInManager<UserEntity> signInManager, IConfiguration configuration, IEmailQueries emailQueries)
         {
             _mapper = mapper;
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
-            _mailService = mailService;
-            _urlHelper = urlHelper;
-            _request = httpContextAccessor.HttpContext.Request;
+            _emailQueries = emailQueries;
         }
         public async Task<UserMP> GetUserById(string id)
         {
@@ -93,30 +90,7 @@ namespace WymianaKsiazek.Queries.UserQueries
                 else
                 {
                     var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var confirmationlink = _urlHelper.Action("ConfirmEmail", "User", new { userId = user.Id, token = token}, _request.Scheme);
-                    MailRequest mailRequest = new MailRequest();
-                    mailRequest.ToEmail = model.Email;
-                    mailRequest.Subject = "wymienksiazke.com - Weryfikacja konta";
-                    string mailtext = "<div style = 'background-color: #696969; color: white; margin-left: auto; margin-right: auto; width: 100%;'>" +
-                    "<div style = 'padding-top: 30px; text-align: center;'>" +
-                        "Witaj, Twoje konto jest prawie gotowe!" +
-                    "</div>" +
-                    "<div style = 'padding-top: 30px; text-align: center;'>" +
-                        "Kliknij poniższy przycisk aby aktywować swoje konto" +
-                    "</div>" +
-                    "<div style = 'background-color: #228B22; padding: 10px; width: 100px; margin-left: 42%; margin-top: 30px;'>" +
-                        "<a href = '" + confirmationlink + "' style = 'text-decoration:none'>" +
-                            "<div style = 'text-align: center; color: white;'>" +
-                                "Weryfikuj" +
-                            "</div>" +
-                        "</a>" +
-                    "</div>" +
-                    "<div style = 'background-color: black; text-align: center; margin-top: 20px; color: white;'>" +
-                        "wymienksiazke.com &copy Wszelkie prawa zastrzeżone!" +
-                    "</div>" +
-                    "</div>";
-                    mailRequest.Body = mailtext;
-                    await _mailService.SendEmailAsync(mailRequest);
+                    await _emailQueries.SendEmailVerification(user, token);
                 }
                 transaction.Commit();
             }
@@ -157,6 +131,7 @@ namespace WymianaKsiazek.Queries.UserQueries
                 UserId = userId,
                 CreatedOn = createdOn,
                 ExpiresOn = expiresOn,
+                IsUserActiveInChat = false,
                 Token = Guid.NewGuid().ToString()
             };
 
@@ -184,6 +159,7 @@ namespace WymianaKsiazek.Queries.UserQueries
             token.RefreshToken = await CreateRefreshToken(user.Id);
             token.Id = user.Id;
             token.Email = user.UserName;
+            token.Img = user.Img;
             return token;
         }
         public async Task<int> RemoveRefreshToken(string token)
@@ -213,30 +189,7 @@ namespace WymianaKsiazek.Queries.UserQueries
         public async Task SendEmailResetPassword(UserEntity user)
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationlink = _urlHelper.Action("ResetPassword", "User", new { userId = user.Id, token = token }, _request.Scheme);
-            MailRequest mailRequest = new MailRequest();
-            mailRequest.ToEmail = user.Email;
-            mailRequest.Subject = "wymienksiazke.com - Reset hasła - Weryfikacja";
-            string mailtext = "<div style = 'background-color: #696969; color: white; margin-left: auto; margin-right: auto; width: 100%;'>" +
-            "<div style = 'padding-top: 30px; text-align: center;'>" +
-                "Reset hasła - Weryfikacja!" +
-            "</div>" +
-            "<div style = 'padding-top: 30px; text-align: center;'>" +
-                "Kliknij poniższy przycisk zresetować hasło" +
-            "</div>" +
-            "<div style = 'background-color: #228B22; padding: 10px; width: 100px; margin-left: 42%; margin-top: 30px;'>" +
-                "<a href = '" + confirmationlink + "' style = 'text-decoration:none'>" +
-                    "<div style = 'text-align: center; color: white;'>" +
-                        "Resetuj" +
-                    "</div>" +
-                "</a>" +
-            "</div>" +
-            "<div style = 'background-color: black; text-align: center; margin-top: 20px; color: white;'>" +
-                "wymienksiazke.com &copy Wszelkie prawa zastrzeżone!" +
-            "</div>" +
-            "</div>";
-            mailRequest.Body = mailtext;
-            await _mailService.SendEmailAsync(mailRequest);
+            await _emailQueries.SendEmailResetPassword(user, token);
         }
         public async Task<int> ChangeCurrentPassword(string userid, string oldpasswd, string newpasswd)
         {
@@ -271,81 +224,11 @@ namespace WymianaKsiazek.Queries.UserQueries
                 Include(x => x.Offers).ThenInclude(x => x.Address).Where(x => x.Id == id).FirstOrDefault();
             return _mapper.Map<UserProfile>(user);
         }
-        public int GetUserOpinionAboutUser(string userprofileid, string usersopinionid)
-        {
-            var opinionid = _context.UserOpinions.Where(x => x.User_Id == userprofileid).Select(x => x.Opinion_Id).FirstOrDefault();
-            if(opinionid == 0)
-            {
-                return -1;
-            }
-            var useropinion = 0;
-            useropinion = _context.UserOpinionInfo.Where(x => x.Opinion_Id == opinionid && x.User_Id == usersopinionid).Select(x => x.Value).FirstOrDefault();
-            return useropinion;
-        }
-        public async Task AddUserOpinionAboutUser(int value, long opinion_id, string userid)
-        {
-            UserUserOpinionEntity useropinion = new UserUserOpinionEntity();
-            useropinion.User_Id = userid;
-            useropinion.Opinion_Id = opinion_id;
-            useropinion.Value = value;
-            using(var transaction = _context.Database.BeginTransaction())
-            {
-                _context.Add(useropinion);
-                var useropiniontable = _context.UserOpinions.Where(x => x.Opinion_Id == opinion_id).FirstOrDefault();
-                if(useropiniontable != null)
-                {
-                    useropiniontable.OpinionSumValue += (uint)value;
-                    useropiniontable.TotalOpinions += 1;
-                }
-                await _context.SaveChangesAsync();
-                transaction.Commit();
-            }
-        }
-        public async Task LikeOffer(string userid, long offerid)
-        {
-            UserLikedOffersEntity like = new UserLikedOffersEntity();
-            like.User_Id = userid;
-            like.Offer_Id = offerid;
-            using(var transaction = _context.Database.BeginTransaction())
-            {
-                _context.Add(like);
-                await _context.SaveChangesAsync();
-                transaction.Commit();
-            }
-        }
-        public async Task UnLikeOffer(string userid, long offerid)
-        {
-            var like = _context.UserLikedOffers.Where(x => x.User_Id == userid && x.Offer_Id == offerid).FirstOrDefault();
-			if(like != null)
-			{
-				_context.UserLikedOffers.Attach(like);
-				_context.UserLikedOffers.Remove(like);
-				await _context.SaveChangesAsync();
-			}
-        }
         public List<OffersListMP> GetUsersLikedOffers(string userid)
         {
             var offers = _context.UserLikedOffers.Include(x => x.Offer).ThenInclude(x => x.Book).Include(x => x.Offer).ThenInclude(x => x.User)
                 .Include(x => x.Offer).ThenInclude(x => x.Address).Where(x => x.User_Id == userid).Select(x => x.Offer).ToList();
             return _mapper.Map<List<OffersListMP>>(offers);
-        }
-        public ConversationMP GetConversationById(long id)
-        {
-            var conversation = _context.Conversations.Include(x => x.User1).Include(x => x.User2).Include(x => x.Messages)
-                .Where(x => x.Id == id).FirstOrDefault();
-            return _mapper.Map<ConversationMP>(conversation);
-        }
-        public async Task CreateMessage(long convid, string text, string userid)
-        {
-            MessageEntity message = new MessageEntity();
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                message.Text = text;
-                message.Conv_Id = convid;
-                message.User_Id = userid;
-                await _context.AddAsync(message);
-                await _context.SaveChangesAsync();
-            }
         }
     }
 }
