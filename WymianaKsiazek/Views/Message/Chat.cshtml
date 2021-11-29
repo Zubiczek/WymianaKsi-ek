@@ -1,0 +1,169 @@
+@using WymianaKsiazek.Models.MapperModels;
+@model ConversationMP
+@{ 
+    long convid = ViewBag.ConvId;
+    string username = ViewBag.MyUserName;
+    string connection = ViewBag.ConnectionId;
+    UserMP otheruser = ViewBag.OtherUserId;
+}
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+<div class="message-window">
+    <div style="font-size: 25px; margin-bottom: 10px;">Rozmowa z</div>
+    <img src="~/images/@otheruser.Img" class="message-user-image">
+    <div>@otheruser.UserName</div>
+    <input type="hidden" id="otheruser" value="@otheruser.Id"/>
+    <input type="hidden" id="myuserid" value="@ViewBag.MyId"/>
+    <input type="hidden" id="connectionId"/>
+    <div id="chat" class="chat-window">
+        <ul class="message">
+            @foreach (var i in Model.Messages)
+            {
+                <li>@i.User.UserName: @i.Text</li>
+            }
+        </ul>
+        <ul id="messagesList" class="message"></ul>
+    </div>
+    <form autocomplete="off" id="sendmessageform" method="post" role="form">
+        <textarea class="message-input" placeholder="Wyślij wiadomość" maxlength='150' name="messageInput" id="messageInput" required></textarea>
+        <div style="clear: both;"></div>
+        <input type="hidden" id="userInput" value="@username" />
+        <input type="hidden" id="receiverId" value="@connection"/>
+        <input type="hidden" id="convid" name="convid" value="@convid">
+        <input type="submit" value="Wyślij" class="addoffer-submit" id="sendToUser">
+        <input type="button" id="sendButton" value="Send Message to All" style="display: none;"/>
+    </form>
+</div>
+<div style="height: 50px;"></div>
+<script>
+
+    const form = document.querySelector('#sendmessageform');
+
+    "use strict";
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+
+    //Disable send button until connection is established
+    document.getElementById("sendButton").disabled = true;
+
+    connection.on("ReceiveMessage", function (user, myconnectionid, message) {
+        let msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let encodedMsg = user + ": " + msg;
+        $('#receiverId').val(myconnectionid);
+        let li = document.createElement("li");
+        li.textContent = encodedMsg;
+        document.getElementById("messagesList").appendChild(li);
+        scrollToBottom();
+    });
+
+    connection.start().then(function () {
+        connection.invoke("GetConnectionId").then(function (id) {
+            $('#connectionId').val(id);
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UpdateChatConnectionId", "User")',
+                data: { "id": $('#connectionId').val() },
+                success: function (response) {
+
+                },
+                failure: function (response) {
+                    alert("Fail");
+                },
+                error: function (response) {
+                    alert("Error");
+                }
+            });
+        });
+        document.getElementById("sendButton").disabled = false;
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    document.getElementById("sendButton").addEventListener("click", function (event) {
+        var user = document.getElementById("userInput").value;
+        var message = document.getElementById("messageInput").value;
+        connection.invoke("SendMessage", user, message).catch(function (err) {
+            return console.error(err.toString());
+        });
+        event.preventDefault();
+    });
+
+    form.addEventListener("submit", function (event) {
+        let user = document.getElementById("userInput").value;
+        var receiverConnectionId = document.getElementById("receiverId").value;
+        let message = document.getElementById("messageInput").value;
+        let myconnectionid = $('#connectionId').val();
+        if (!receiverConnectionId) {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("GetUserConnection", "Message")',
+                data: { "userid": $('#otheruser').val() },
+                async: false,
+                success: function (response) {
+                    if (response.success) {
+                        receiverConnectionId = response.connectionId;
+                        $('#receiverId').val(response.connectionId);
+                    }
+                },
+                failure: function (response) {
+                    alert("Fail");
+                },
+                error: function (response) {
+                    alert("Error");
+                }
+            });
+        }
+        let msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let encodedMsg = user + ": " + msg;
+        let li = document.createElement("li");
+        li.textContent = encodedMsg;
+        document.getElementById("messagesList").appendChild(li);
+        scrollToBottom();
+        connection.invoke("SendToUser", user, receiverConnectionId, myconnectionid, message).catch(function (err) {
+            return console.error(err.toString());
+        });
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SendMessage", "Message")',
+            data: { "messageInput": $('#messageInput').val(), "convid": $('#convid').val(), "otheruserid": $('#otheruser').val() },
+            success: function (response) {
+                if (response.success != true) {
+                    alert(response.responseText);
+                }
+            },
+            failure: function (response) {
+                alert("Fail");
+            },
+            error: function (response) {
+                alert("Error");
+            }
+        });
+        $('#messageInput').val("");
+    });
+
+    window.onload = scrollToBottom;
+
+    function scrollToBottom() {
+        let messages = document.getElementById('chat');
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    $(window).unload(function () {
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("UpdateUserStatus", "Message")',
+            async: false,
+            data: { "userid": $('#myuserid').val() },
+            success: function (response) {
+
+            },
+            failure: function (response) {
+                alert("Fail");
+            },
+            error: function (response) {
+                alert("Error");
+            }
+        });
+    });
+</script>
+
