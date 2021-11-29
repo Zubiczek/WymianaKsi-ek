@@ -1,4 +1,4 @@
-﻿@using WymianaKsiazek.Models.MapperModels;
+@using WymianaKsiazek.Models.MapperModels;
 @model UserProfile
 @{ 
     int index = 0;
@@ -12,7 +12,7 @@
             <div id="userprofile-nickname">@Model.UserName</div>
             <div id="userprofile-city"><i class="fas fa-map-marker-alt"></i> Toruń</div>
             <div id="userprofile-options">
-                <div class="userprofile-option">Wyślij wiadomość <i class="far fa-envelope"></i></div>
+                <a asp-action="LookForConversation" asp-controller="Message" asp-route-userid="@Model.Id"><div class="userprofile-option">Wyślij wiadomość <i class="far fa-envelope"></i></div></a>
                 <div class="userprofile-option">Zgłoś użytkownika <i class="far fa-flag"></i></div>
             </div>
         </div>
@@ -60,7 +60,7 @@
                 if (isuseralreadyrated == false) {
                     $.ajax({
                         type: "Post",
-                        url: '@Url.Action("AddOpinionAboutUser", "User")',
+                        url: '@Url.Action("AddOpinionAboutUser", "Opinion")',
                         data: { "value": value, "opinionid": $('#useropinionidinput').val() },
                         success: function (response) {
                             if (response.success) {
