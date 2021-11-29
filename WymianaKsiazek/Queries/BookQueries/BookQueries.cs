@@ -85,7 +85,8 @@ namespace WymianaKsiazek.Queries.BookQueries
         }
         public BookOpinionMP GetBookById(long id)
         {
-            var book = _context.Book.Include(x => x.Opinion).Include(x => x.Comments).Where(x => x.Book_Id == id).FirstOrDefault();
+            var book = _context.Book.Include(x => x.Opinion).Include(x => x.Comments).ThenInclude(x => x.User)
+                .Where(x => x.Book_Id == id).FirstOrDefault();
             return _mapper.Map<BookOpinionMP>(book);
         }
         public BookOpinionMP GetBookOpinions(long bookid)
@@ -98,49 +99,6 @@ namespace WymianaKsiazek.Queries.BookQueries
         {
             var category = _context.Category.Where(x => x.Category_Id == id).Select(x => x.Category_Name).FirstOrDefault();
             return category;
-        }
-        public int GetUserOpinionAboutBook(long bookid, string userid)
-        {
-            int value = 0;
-            value = _context.UserBookOpinions.Where(x => x.Opinion.Book_Id == bookid && x.User_Id == userid).Select(x => x.Value).FirstOrDefault();
-            return value;
-        }
-        public async Task AddUserOpinionAboutBook(int value, long opinionid, string userid)
-        {
-            UserBookOpinion opinion = new UserBookOpinion();
-            opinion.Opinion_Id = opinionid;
-            opinion.User_Id = userid;
-            opinion.Value = value;
-            using(var transaction = _context.Database.BeginTransaction())
-            {
-                _context.Add(opinion);
-                var bookopinion = _context.BookOpinions.Where(x => x.Opinion_Id == opinionid).FirstOrDefault();
-                if (bookopinion != null)
-                {
-                    if (value == 1)
-                    {
-                        bookopinion.Opinion1 += 1;
-                    }
-                    else if (value == 2)
-                    {
-                        bookopinion.Opinion2 += 1;
-                    }
-                    else if (value == 3)
-                    {
-                        bookopinion.Opinion3 += 1;
-                    }
-                    else if (value == 4)
-                    {
-                        bookopinion.Opinion4 += 1;
-                    }
-                    else if (value == 5)
-                    {
-                        bookopinion.Opinion5 += 1;
-                    }
-                }
-                await _context.SaveChangesAsync();
-                transaction.Commit();
-            }
         }
     }
 }
