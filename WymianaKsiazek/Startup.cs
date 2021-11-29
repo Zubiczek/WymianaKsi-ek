@@ -28,6 +28,12 @@ using WymianaKsiazek.Queries.OfferQueries;
 using WymianaKsiazek.Queries.BookQueries;
 using Microsoft.AspNetCore.SignalR;
 using WymianaKsiazek.Hubs;
+using WymianaKsiazek.Queries.MessageQueries;
+using WymianaKsiazek.Queries.CommentQueries;
+using WymianaKsiazek.Queries.LikeQueries;
+using WymianaKsiazek.Queries.OpinionQueries;
+using WymianaKsiazek.Queries.EmailQueries;
+using WymianaKsiazek.Functions;
 
 namespace WymianaKsiazek
 {
@@ -50,6 +56,12 @@ namespace WymianaKsiazek
             services.AddScoped<IUserQueries, UserQueries>();
             services.AddScoped<IOfferQueries, OfferQueries>();
             services.AddScoped<IBookQueries, BookQueries>();
+            services.AddScoped<IMessageQueries, MessageQueries>();
+            services.AddScoped<ICommentQueries, CommentQueries>();
+            services.AddScoped<ILikeQueries, LikeQueries>();
+            services.AddScoped<IOpinionQueries, OpinionQueries>();
+            services.AddScoped<IEmailQueries, EmailQueries>();
+            services.AddScoped<ILoggedInUser, LoggedInUser>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddScoped<IUrlHelper>(x => {
@@ -119,16 +131,12 @@ namespace WymianaKsiazek
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoint =>
-            {
-                endpoint.MapHub<ChatHub>("/User/Chat/{id}");
-            });
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<ChatHub>("/chatHub");
             });
 
             app.Use(async (context, next) =>
