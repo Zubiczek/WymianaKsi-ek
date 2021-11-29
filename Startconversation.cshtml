@@ -1,0 +1,12 @@
+﻿@using WymianaKsiazek.Models.MapperModels
+@model UserMP
+<h2>Zacznij konwersację</h2>
+<img src="~/images/user.png" class="message-user-image">
+<div>@Model.UserName</div>
+<form autocomplete="off" asp-action="CreateNewConversation" asp-controller="Message" method="post" role="form">
+    <textarea class="message-input" placeholder="Wyślij wiadomość, aby utworzyć konwersację" maxlength='150' name="text" id="text" required></textarea>
+    <input type="hidden" id="userid" name="userid" value="@Model.Id"/>
+    <div style="clear: both;"></div>
+    <input type="submit" value="Wyślij" class="addoffer-submit">
+</form>
+<div style="height: 50px;"></div>
