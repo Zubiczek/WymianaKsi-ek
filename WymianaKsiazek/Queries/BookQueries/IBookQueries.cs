@@ -17,7 +17,5 @@ namespace WymianaKsiazek.Queries.BookQueries
         public BookOpinionMP GetBookById(long id);
         public BookOpinionMP GetBookOpinions(long bookid);
         public string GetCategoryName(long id);
-        public int GetUserOpinionAboutBook(long opinionid, string userid);
-        public Task AddUserOpinionAboutBook(int value, long opinionid, string userid);
     }
 }
