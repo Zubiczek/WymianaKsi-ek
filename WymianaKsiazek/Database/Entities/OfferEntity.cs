@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -29,11 +29,13 @@ namespace WymianaKsiazek.Database.Entities
         public virtual AddressEntity Address { get; set; }
         public virtual ICollection<OfferCommentsEntity> Comments { get; set; }
         public virtual ICollection<UserLikedOffersEntity> UserLiked { get; set; }
+        public virtual ICollection<OfferReportsEntity> Reports { get; set; }
         public OfferEntity()
         {
             CreatedOn = DateTime.UtcNow;
             Comments = new List<OfferCommentsEntity>();
             UserLiked = new List<UserLikedOffersEntity>();
+            Reports = new List<OfferReportsEntity>();
         }
     }
 }
