@@ -1468,3 +1468,141 @@ footer {
     float: left;
     color: #999;
 }
+.mymessages-window {
+    text-align: left;
+    font-size: 22px;
+    padding: 10px;
+}
+
+.mymessages-conversation-info {
+    margin-top: 30px;
+    border: 1px solid #6495ED;
+    border-radius: 10px;
+    width: 60%;
+    height: 120px;
+}
+
+.mymessages-user-image {
+    float: left;
+}
+
+.message-user-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+.mymessages-user {
+    float: left;
+    margin-left: 20px;
+}
+
+.message-user-nickname {
+    font-size: 25px;
+}
+
+.message-lastmessage {
+    margin-top: 10px;
+    font-size: 18px;
+    color: gray;
+}
+
+.seeconversation-button {
+    float: right;
+    margin-right: 10px;
+    margin-top: 40px;
+}
+
+.mymessages-unseen {
+    border-bottom: 1px solid gray;
+}
+
+.mymessages-last-conversations {
+    margin-top: 20px;
+}
+
+.message-window {
+    text-align: center;
+    font-size: 20px;
+    padding: 10px;
+    background: #cccccc;
+}
+
+.chat-window {
+    height: 300px;
+    background: white;
+    margin-left: 50px;
+    margin-right: 50px;
+    margin-top: 30px;
+    text-align: left;
+    padding: 10px;
+    border-radius: 15px;
+    overflow-y: auto;
+}
+
+.chat-user-message {
+    background: white;
+    border-radius: 10px;
+    float: left;
+    padding: 10px;
+    margin-top: 20px;
+    margin-left: 20px;
+    width: 30%;
+}
+
+.chat-user-nickname {
+    text-align: left;
+    border-bottom: 1px solid gray;
+    font-size: 25px;
+}
+
+.chat-user-message-content {
+    text-align: left;
+    margin-top: 10px;
+}
+
+.chat-user-message-data {
+    font-size: 17px;
+    margin-top: 20px;
+    text-align: left;
+    color: #595959;
+}
+
+.chat-my-message {
+    background: #6495ED;
+    border-radius: 10px;
+    float: right;
+    padding: 10px;
+    margin-top: 20px;
+    margin-right: 20px;
+    width: 30%;
+}
+
+.message-input {
+    border: none;
+    outline: none;
+    background: #efefef;
+    font-size: 15px;
+    height: 50px;
+    width: 30%;
+    padding: 10px;
+    resize: none;
+    margin-top: 10px;
+    width: 60%;
+}
+.message {
+    margin-top: 10px;
+}
+
+.message-username {
+    font-size: 25px;
+    float: left;
+    text-decoration: underline;
+}
+
+.message-text {
+    font-size: 18px;
+    margin-left: 10px;
+    float: left;
+    margin-top: 4px;
+}
