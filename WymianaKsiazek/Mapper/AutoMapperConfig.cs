@@ -32,6 +32,7 @@ namespace WymianaKsiazek.Mapper
                 cfg.CreateMap<MessageEntity, MessageMP>();
                 cfg.CreateMap<MessageEntity, LastMessageMP>();
                 cfg.CreateMap<ConversationEntity, UserConversationsMP>();
+                cfg.CreateMap<OfferEntity, OfferReportMP>();
             }).CreateMapper();
     }
 }
