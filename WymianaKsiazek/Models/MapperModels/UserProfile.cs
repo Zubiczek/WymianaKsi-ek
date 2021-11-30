@@ -9,6 +9,7 @@ namespace WymianaKsiazek.Models.MapperModels
     {
         public string Id { get; set; }
         public string UserName { get; set; }
+        public string Img { get; set; }
         public virtual UserOpinionsMP UserOpinion { get; set; }
         public virtual ICollection<OffersListMP> Offers { get; set; }
     }
