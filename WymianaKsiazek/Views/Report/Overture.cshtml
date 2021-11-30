@@ -1,0 +1,121 @@
+@using WymianaKsiazek.Models.MapperModels;
+@model OfferReportMP 
+<div class="reportoffer-offer-window">
+    <div class="reportoffer-offer-info">
+        <img src="~/images/@Model.Image" width="170px" height="170px">
+    </div>
+    <div class="reportoffer-offer-info">
+        <div class="reportoffer-offer-book">
+            <div id="reportoffer-offer-book-title">@Model.Book.Title</div>
+            <div id="reportoffer-offer-book-author">@Model.Book.Author</div>
+        </div>
+        <div class="reportoffer-offer-user">Dodano przez: @Model.User.UserName</div>
+        <div class="reportoffer-offer-content">
+            <div class="reportoffer-offer-date">@Model.CreatedOn.ToString("dd/MM/yyyy")</div>
+            <div class="reportoffer-offer-text">@Model.Content</div>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+<div class="reportoffer-window">
+    <div class="reportoffer-note">Pamiętaj, że bezpodstawne zgłaszanie jest również karane!</div>
+    <div class="reportoffer-reasons-window">
+        <div class="reportoffer-info">Wybierz powód:</div>
+        <div class="reportoffer-reason">
+            <input type="checkbox" id="chbox-reason1" onclick="check(this)"> Wulgarny język
+        </div>
+        <div class="reportoffer-reason">
+            <input type="checkbox" id="chbox-reason2" onclick="check(this)"> Nieodpowiednie treści, niezwiązane z tematyką strony
+        </div>
+        <div class="reportoffer-reason">
+            <input type="checkbox" id="chbox-reason3" onclick="check(this)"> Nieodpowiednie zdjęcie, niezwiązane z tematyką
+        </div>
+        <div class="reportoffer-reason">
+            <input type="checkbox" id="chbox-reason4" onclick="check(this)"> Próba oszustwa
+        </div>
+        <div class="reportoffer-reason">
+            <input type="checkbox" id="chbox-reason5" onclick="check(this)"> Nieaktualna oferta
+        </div>
+        <form autocomplete="off" id="reportform">
+            <input type="hidden" id="reportid" value="0">
+			<input type="hidden" id="offerid" value="@Model.Offer_Id"/>
+            <div style="height: 10px;"></div>
+            <input type="submit" class="addoffer-submit" value="Zgłoś">
+            <div class="errorfield" id="error"></div>
+        </form>
+		<div id="offersuccessreport" class="successinfo"></div>
+		<div id="offerfailreport" class="failinfo"></div>
+    </div>
+</div>
+<script>
+			const form = document.querySelector('#reportform');
+			function check(checkbox)
+			{
+				let ch1 = $('#chbox-reason1')[0];
+				let ch2 = $('#chbox-reason2')[0];
+				let ch3 = $('#chbox-reason3')[0];
+				let ch4 = $('#chbox-reason4')[0];
+				let ch5 = $('#chbox-reason5')[0];
+				ch1.checked = false;
+				ch2.checked = false;
+				ch3.checked = false;
+				ch4.checked = false;
+				ch5.checked = false;
+				checkbox.checked = true;
+				if($(checkbox).attr('id') == "chbox-reason1")
+				{
+					$('#reportid').val("1");
+				}
+				else if($(checkbox).attr('id') == "chbox-reason2")
+				{
+					$('#reportid').val("2");
+				}
+				else if($(checkbox).attr('id') == "chbox-reason3")
+				{
+					$('#reportid').val("3");
+				}
+				else if($(checkbox).attr('id') == "chbox-reason4")
+				{
+					$('#reportid').val("4");
+				}
+				else if($(checkbox).attr('id') == "chbox-reason5")
+				{
+					$('#reportid').val("5");
+				}
+			}
+			form.addEventListener('submit', function (event) {
+				event.preventDefault();
+				let value = $('#reportid').val();
+				if(value == "0" || value == 0)
+				{
+					$('#error').html("Proszę wybrać powód!");
+				}
+				else
+				{
+					$.ajax({
+						type: "POST",
+						url: '@Url.Action("ReportOffer", "Report")',
+						data: { "offerid": $('#offerid').val(), "reasonid": $('#reportid').val() },
+						success: function (response) {
+							if (response.success) {
+								$('#offersuccessreport').html(response.text);
+                                $('#offerfailreport').html("Zostaniesz przekierowany do strony głównej za 3 sekundy");
+								window.setTimeout(function () {
+									window.location.href = '@Url.Action("Index", "Home")';
+                                }, 3000);
+							}
+							else {
+								$('#offerfailreport').html(response.text);
+                                $('#offersuccessreport').html("");
+                            }
+						},
+                        failure: function (response) {
+                            alert("Fail");
+                        },
+                        error: function (response) {
+                            alert("Error");
+                        }
+					});
+				}
+			});
+</script>
