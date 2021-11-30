@@ -99,22 +99,22 @@
 						success: function (response) {
 							if (response.success) {
 								$('#offersuccessreport').html(response.text);
-                                $('#offerfailreport').html("Zostaniesz przekierowany do strony głównej za 3 sekundy");
+                                				$('#offerfailreport').html("Zostaniesz przekierowany do strony głównej za 3 sekundy");
 								window.setTimeout(function () {
 									window.location.href = '@Url.Action("Index", "Home")';
-                                }, 3000);
+                                				}, 3000);
 							}
 							else {
 								$('#offerfailreport').html(response.text);
-                                $('#offersuccessreport').html("");
-                            }
+                                				$('#offersuccessreport').html("");
+                            				}
 						},
-                        failure: function (response) {
-                            alert("Fail");
-                        },
-                        error: function (response) {
-                            alert("Error");
-                        }
+                        			failure: function (response) {
+                            				alert("Fail");
+                        			},
+                        			error: function (response) {
+                            				alert("Error");
+                        			}
 					});
 				}
 			});
