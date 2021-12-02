@@ -8,14 +8,14 @@ namespace WymianaKsiazek.Queries.BookQueries
 {
     public interface IBookQueries
     {
-        public List<BookReviewsList> GetBooks();
-        public List<BookReviewsList> GetBooksByCategory(long id);
-        public List<BookReviewsList> GetBooksByAuthor(string author);
-        public List<BookReviewsList> GetConcretBook(string title, string author);
-        public List<BookReviewsList> GetSearchedBooks(string title, string author);
-        public List<BookReviewsList> GetSearchedBooksByFilter(List<BookReviewsList> books, long categoryid, int sorttype);
-        public BookOpinionMP GetBookById(long id);
-        public BookOpinionMP GetBookOpinions(long bookid);
-        public string GetCategoryName(long id);
+        Task<List<BookReviewsList>> GetBooks();
+        Task<List<BookReviewsList>> GetBooksByCategory(long id);
+        Task<List<BookReviewsList>> GetBooksByAuthor(string author);
+        Task<List<BookReviewsList>> GetConcretBook(string title, string author);
+        Task<List<BookReviewsList>> GetSearchedBooks(string title, string author);
+        List<BookReviewsList> GetSearchedBooksByFilter(List<BookReviewsList> books, long categoryid, int sorttype);
+        Task<BookOpinionMP> GetBookById(long id);
+        Task<BookOpinionMP> GetBookOpinions(long bookid);
+        Task<string> GetCategoryName(long id);
     }
 }
