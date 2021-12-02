@@ -33,16 +33,16 @@ namespace WymianaKsiazek.Controllers
             _likeQueries = likeQueries;
             _loggedUser = loggedUser;
         }
-        public IActionResult offer(long id)
+        public async Task<IActionResult> offer(long id)
         {
-            var offer = _offerQueries.GetOfferById(id);
-            var isuserloggedin = _loggedUser.IsUserLoggedIn();
-            ViewBag.IsUserLoggedIn = isuserloggedin;
+            var offer = await _offerQueries.GetOfferById(id);
             if (offer == null)
             {
                 return RedirectToAction("Error", "Home");
             }
-            if(isuserloggedin)
+            var isuserloggedin = _loggedUser.IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuserloggedin;
+            if (isuserloggedin)
             {
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
@@ -51,20 +51,20 @@ namespace WymianaKsiazek.Controllers
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                ViewBag.IsOfferLikedByUser = _likeQueries.IsOfferFollowedByUser(id, userid);
+                ViewBag.IsOfferLikedByUser = await _likeQueries.IsOfferFollowedByUser(id, userid);
             }
             return View(offer);
         }
-        public IActionResult search(string title, string author)
+        public async Task<IActionResult> search(string title, string author)
         {
             List<OffersListMP> offers;
             if (title != null && author != null)
             {
-                offers = _offerQueries.GetOffersWithBook(title, author);
+                offers = await _offerQueries.GetOffersWithBook(title, author);
             }
             else
             {
-                offers = _offerQueries.GetOffers();
+                offers = await _offerQueries.GetOffers();
             }
             TempData["currentoffers"] = JsonConvert.SerializeObject(offers);
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
@@ -76,9 +76,9 @@ namespace WymianaKsiazek.Controllers
             }
             return View(offers);
         }
-        public IActionResult GetPartialSearchView(string searchbookbox, string searchlocationbox)
+        public async Task<IActionResult> GetPartialSearchView(string searchbookbox, string searchlocationbox)
         {
-            var offers = _offerQueries.GetSearchesOffers(searchbookbox, searchlocationbox);
+            var offers = await _offerQueries.GetSearchesOffers(searchbookbox, searchlocationbox);
             TempData["currentoffers"] = JsonConvert.SerializeObject(offers);
             ViewBag.TitleorAuthor = searchbookbox;
             ViewBag.Location = searchlocationbox;
@@ -95,9 +95,9 @@ namespace WymianaKsiazek.Controllers
             var offers = _offerQueries.GetSearchedOffersByFilters(currentoffers, (long)Convert.ToDouble(inputcategoryid), Convert.ToUInt32(inputlowprice), Convert.ToUInt32(inputupprice), Convert.ToInt32(inputtype));
             return PartialView("PartialSearchFilterView", offers);
         }
-        public IActionResult ClearFilters()
+        public async Task<IActionResult> ClearFilters()
         {
-            var offers = _offerQueries.GetOffers();
+            var offers = await _offerQueries.GetOffers();
             TempData["currentoffers"] = JsonConvert.SerializeObject(offers);
             return PartialView("PartialClearFiltersView", offers);
         }
@@ -123,9 +123,9 @@ namespace WymianaKsiazek.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult GetBooks(string title)
+        public async Task<IActionResult> GetBooks(string title)
         {
-            var books = _offerQueries.GetBooksToAdd(title);
+            var books = await _offerQueries.GetBooksToAdd(title);
             return Json(books);
         }
         [HttpPost]
