@@ -97,7 +97,7 @@ namespace WymianaKsiazek.Controllers
             }
             return View();
         }
-        public IActionResult MyProfile()
+        public async Task<IActionResult> MyProfile()
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
@@ -115,13 +115,13 @@ namespace WymianaKsiazek.Controllers
             {
                 return RedirectToAction("Error", "Home");
             }
-            var user = _userQueries.MyProfile(userid);
+            var user = await _userQueries.MyProfile(userid);
             if(user == null)
             {
                 return RedirectToAction("Error", "Home");
             }
             ViewBag.ChangeInfo = TempData["ChangeInfo"];
-            var userlikedoffers = _userQueries.GetUsersLikedOffers(userid);
+            var userlikedoffers = await _userQueries.GetUsersLikedOffers(userid);
             dynamic model = new ExpandoObject();
             model.Profile = user;
             model.LikedOffers = userlikedoffers;
@@ -174,7 +174,7 @@ namespace WymianaKsiazek.Controllers
             ViewBag.IsUserLoggedIn = isuerloggedin;
             if (!isuerloggedin)
             {
-                return RedirectToAction("Error", "Home");
+                return RedirectToAction("Login", "User");
             }
             else
             {
@@ -185,9 +185,9 @@ namespace WymianaKsiazek.Controllers
             TempData["PasswordError"] = null;
             return View();
         }
-        public IActionResult Profile(string id)
+        public async Task<IActionResult> Profile(string id)
         {
-            var user = _userQueries.GetUserProfile(id);
+            var user = await _userQueries.GetUserProfile(id);
             if(user == null)
             {
                 return RedirectToAction("Error", "Home");
@@ -203,9 +203,25 @@ namespace WymianaKsiazek.Controllers
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                ViewBag.UserOpinion = _opinionQueries.GetUserOpinionAboutUser(id, userid);
+                ViewBag.UserOpinion = await _opinionQueries.GetUserOpinionAboutUser(id, userid);
             }
             return View(user);
+        }
+        public IActionResult EditProfile()
+        {
+            bool isuerloggedin = _loggedUser.IsUserLoggedIn();
+            ViewBag.IsUserLoggedIn = isuerloggedin;
+            if (!isuerloggedin)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            else
+            {
+                ViewBag.Username = HttpContext.Session.GetString("Username");
+                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+                ViewBag.Error = TempData["EditError"];
+            }
+            return View();
         }
         [AllowAnonymous]
         [HttpPost]
