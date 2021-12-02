@@ -44,6 +44,11 @@ namespace WymianaKsiazek.Queries.UserQueries
             _configuration = configuration;
             _emailQueries = emailQueries;
         }
+        public async Task<UserEntity> GetUserEntity(string userid)
+        {
+            var user = await _userManager.FindByIdAsync(userid);
+            return user;
+        }
         public async Task<UserMP> GetUserById(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -180,10 +185,10 @@ namespace WymianaKsiazek.Queries.UserQueries
             }
             return 0;
         }
-        public MyProfileMP MyProfile(string userid)
+        public async Task<MyProfileMP> MyProfile(string userid)
         {
-            var userdb = _context.User.Include(x => x.Offers).ThenInclude(x => x.Book).Include(x => x.Offers).ThenInclude(x => x.User)
-                .Include(x => x.Offers).ThenInclude(x => x.Address).Where(x => x.Id == userid).FirstOrDefault();
+            var userdb = await _context.User.Include(x => x.Offers).ThenInclude(x => x.Book).Include(x => x.Offers).ThenInclude(x => x.User)
+                .Include(x => x.Offers).ThenInclude(x => x.Address).Where(x => x.Id == userid).FirstOrDefaultAsync();
             return _mapper.Map<MyProfileMP>(userdb);
         }
         public async Task SendEmailResetPassword(UserEntity user)
@@ -218,16 +223,17 @@ namespace WymianaKsiazek.Queries.UserQueries
                 transaction.Commit();
             }
         }
-        public UserProfile GetUserProfile(string id)
+        public async Task<UserProfile> GetUserProfile(string id)
         {
-            var user = _context.User.Include(x => x.UserOpinion).Include(x => x.Offers).ThenInclude(x => x.Book).
-                Include(x => x.Offers).ThenInclude(x => x.Address).Where(x => x.Id == id).FirstOrDefault();
+            var user = await _context.User.Include(x => x.UserOpinion).Include(x => x.Offers).ThenInclude(x => x.Book).
+                Include(x => x.Offers).ThenInclude(x => x.Address).Where(x => x.Id == id).FirstOrDefaultAsync();
             return _mapper.Map<UserProfile>(user);
         }
-        public List<OffersListMP> GetUsersLikedOffers(string userid)
+        public async Task<List<OffersListMP>> GetUsersLikedOffers(string userid)
         {
-            var offers = _context.UserLikedOffers.Include(x => x.Offer).ThenInclude(x => x.Book).Include(x => x.Offer).ThenInclude(x => x.User)
-                .Include(x => x.Offer).ThenInclude(x => x.Address).Where(x => x.User_Id == userid).Select(x => x.Offer).ToList();
+            var offers = await _context.UserLikedOffers.Include(x => x.Offer).ThenInclude(x => x.Book).Include(x => x.Offer)
+                .ThenInclude(x => x.User).Include(x => x.Offer).ThenInclude(x => x.Address)
+                .Where(x => x.User_Id == userid).Select(x => x.Offer).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offers);
         }
     }
