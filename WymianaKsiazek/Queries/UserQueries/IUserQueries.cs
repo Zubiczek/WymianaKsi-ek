@@ -10,17 +10,18 @@ namespace WymianaKsiazek.Queries.UserQueries
 {
     public interface IUserQueries
     {
-        public Task<UserMP> GetUserById(string id); 
-        public Task<int> CreateNewUser(CreateUserMP model);
-        public (string, DateTime) CreateAccessToken(UserEntity user);
-        public Task<string> CreateRefreshToken(string userId);
-        public Task<TokenOutput> CreateToken(string email, string password);
-        public Task<int> RemoveRefreshToken(string token);
-        public MyProfileMP MyProfile(string userid);
-        public Task SendEmailResetPassword(UserEntity user);
-        public Task ChangePassword(UserEntity user, string password);
-        public Task<int> ChangeCurrentPassword(string userid, string oldpasswd, string newpasswd);
-        public UserProfile GetUserProfile(string id);
-        public List<OffersListMP> GetUsersLikedOffers(string userid);
+        Task<UserEntity> GetUserEntity(string userid);
+        Task<UserMP> GetUserById(string id); 
+        Task<int> CreateNewUser(CreateUserMP model);
+        (string, DateTime) CreateAccessToken(UserEntity user);
+        Task<string> CreateRefreshToken(string userId);
+        Task<TokenOutput> CreateToken(string email, string password);
+        Task<int> RemoveRefreshToken(string token);
+        Task<MyProfileMP> MyProfile(string userid);
+        Task SendEmailResetPassword(UserEntity user);
+        Task ChangePassword(UserEntity user, string password);
+        Task<int> ChangeCurrentPassword(string userid, string oldpasswd, string newpasswd);
+        Task<UserProfile> GetUserProfile(string id);
+        Task<List<OffersListMP>> GetUsersLikedOffers(string userid);
     }
 }
