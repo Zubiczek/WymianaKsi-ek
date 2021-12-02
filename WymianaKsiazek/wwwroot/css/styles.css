@@ -1700,3 +1700,14 @@ footer {
     font-size: 18px;
     color: red;
 }
+.editprofile
+{
+	text-align: left;
+	margin-top: 40px;
+	border: 1px solid #6495ED;
+	border-radius: 15px;
+	padding: 20px;
+	width: 22%;
+	margin-left: 30px;
+	display: inline-block;
+}
