@@ -34,10 +34,10 @@ namespace WymianaKsiazek.Controllers
             _loggedUser = loggedUser;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
-            var offers = _offerQueries.GetAllOffers();
+            var offers = await _offerQueries.GetAllOffers();
             ViewBag.IsUserLoggedIn = isuerloggedin;
             if (isuerloggedin)
             {
@@ -46,9 +46,9 @@ namespace WymianaKsiazek.Controllers
             }
             return View(offers);
         }
-        public IActionResult Category(long id)
+        public async Task<IActionResult> Category(long id)
         {
-            var categoryname = _bookQueries.GetCategoryName(id);
+            var categoryname = await _bookQueries.GetCategoryName(id);
             if(categoryname == null)
             {
                 return RedirectToAction("Error", "Home");
@@ -61,8 +61,8 @@ namespace WymianaKsiazek.Controllers
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
             ViewBag.CategoryName = categoryname;
-            var books = _bookQueries.GetBooksByCategory(id);
-            var offers = _offerQueries.GetOffersByCategory(id);
+            var books = await _bookQueries.GetBooksByCategory(id);
+            var offers = await _offerQueries.GetOffersByCategory(id);
             dynamic model = new ExpandoObject();
             model.Offers = offers;
             model.Books = books;
