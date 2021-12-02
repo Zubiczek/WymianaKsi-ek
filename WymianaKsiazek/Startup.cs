@@ -63,6 +63,8 @@ namespace WymianaKsiazek
             services.AddScoped<IEmailQueries, EmailQueries>();
             services.AddScoped<ILoggedInUser, LoggedInUser>();
             services.AddScoped<IReportQueries, ReportQueries>();
+            services.AddScoped<IEditQueries, EditQueries>();
+            services.AddScoped<ISaveImg, SaveImg>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddScoped<IUrlHelper>(x => {
