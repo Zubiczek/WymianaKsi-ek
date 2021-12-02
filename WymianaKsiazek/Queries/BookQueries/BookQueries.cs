@@ -19,29 +19,32 @@ namespace WymianaKsiazek.Queries.BookQueries
             _mapper = mapper;
             _context = context;
         }
-        public List<BookReviewsList> GetBooks()
+        public async Task<List<BookReviewsList>> GetBooks()
         {
-            var books = _context.Book.Include(x => x.Opinion).ToList();
+            var books = await _context.Book.Include(x => x.Opinion).ToListAsync();
             return _mapper.Map<List<BookReviewsList>>(books);
         }
-        public List<BookReviewsList> GetBooksByCategory(long id)
+        public async Task<List<BookReviewsList>> GetBooksByCategory(long id)
         {
-            var books = _context.Book.Include(x => x.Opinion).Include(x => x.Category).Where(x => x.Category_Id == id).ToList();
+            var books = await _context.Book.Include(x => x.Opinion).Include(x => x.Category)
+                .Where(x => x.Category_Id == id).ToListAsync();
             return _mapper.Map<List<BookReviewsList>>(books);
         }
-        public List<BookReviewsList> GetBooksByAuthor(string author)
+        public async Task<List<BookReviewsList>> GetBooksByAuthor(string author)
         {
-            var books = _context.Book.Include(x => x.Opinion).Include(x => x.Category).Where(x => x.Author == author).ToList();
+            var books = await _context.Book.Include(x => x.Opinion).Include(x => x.Category)
+                .Where(x => x.Author == author).ToListAsync();
             return _mapper.Map<List<BookReviewsList>>(books);
         }
-        public List<BookReviewsList> GetConcretBook(string title, string author)
+        public async Task<List<BookReviewsList>> GetConcretBook(string title, string author)
         {
-            var books = _context.Book.Include(x => x.Opinion).Include(x => x.Category).Where(x => x.Author == author && x.Title == title).ToList();
+            var books = await _context.Book.Include(x => x.Opinion).Include(x => x.Category)
+                .Where(x => x.Author == author && x.Title == title).ToListAsync();
             return _mapper.Map<List<BookReviewsList>>(books);
         }
-        public List<BookReviewsList> GetSearchedBooks(string title, string author)
+        public async Task<List<BookReviewsList>> GetSearchedBooks(string title, string author)
         {
-            var books = GetBooks();
+            var books = await GetBooks();
             if((title == null || title == "") && (author == null || author == ""))
             {
                 return books;
@@ -83,21 +86,21 @@ namespace WymianaKsiazek.Queries.BookQueries
             }
             return books;
         }
-        public BookOpinionMP GetBookById(long id)
+        public async Task<BookOpinionMP> GetBookById(long id)
         {
-            var book = _context.Book.Include(x => x.Opinion).Include(x => x.Comments).ThenInclude(x => x.User)
-                .Where(x => x.Book_Id == id).FirstOrDefault();
+            var book = await _context.Book.Include(x => x.Opinion).Include(x => x.Comments).ThenInclude(x => x.User)
+                .Where(x => x.Book_Id == id).FirstOrDefaultAsync();
             return _mapper.Map<BookOpinionMP>(book);
         }
-        public BookOpinionMP GetBookOpinions(long bookid)
+        public async Task<BookOpinionMP> GetBookOpinions(long bookid)
         {
-            var bookopinion = _context.Book.Include(x => x.Category).Include(x => x.Offers).Include(x => x.Comments)
-                .Where(x => x.Book_Id == bookid).FirstOrDefault();
+            var bookopinion = await _context.Book.Include(x => x.Category).Include(x => x.Offers).Include(x => x.Comments)
+                .Where(x => x.Book_Id == bookid).FirstOrDefaultAsync();
             return _mapper.Map<BookOpinionMP>(bookopinion);
         }
-        public string GetCategoryName(long id)
+        public async Task<string> GetCategoryName(long id)
         {
-            var category = _context.Category.Where(x => x.Category_Id == id).Select(x => x.Category_Name).FirstOrDefault();
+            var category = await _context.Category.Where(x => x.Category_Id == id).Select(x => x.Category_Name).FirstOrDefaultAsync();
             return category;
         }
     }
