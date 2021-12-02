@@ -29,20 +29,20 @@ namespace WymianaKsiazek.Controllers
             _opinionQueries = opinionQueries;
             _loggedUser = loggedUser;
         }
-        public IActionResult Reviews(string author, string title)
+        public async Task<IActionResult> Reviews(string author, string title)
         {
             List<BookReviewsList> books;
             if(author != null && title != null)
             {
-                books = _bookQueries.GetConcretBook(title, author);
+                books = await _bookQueries.GetConcretBook(title, author);
             }
             else if(author != null)
             {
-                books = _bookQueries.GetBooksByAuthor(author);
+                books = await _bookQueries.GetBooksByAuthor(author);
             }
             else
             {
-                books = _bookQueries.GetBooks();
+                books = await _bookQueries.GetBooks();
             }
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
@@ -54,9 +54,9 @@ namespace WymianaKsiazek.Controllers
             TempData["currentbooks"] = JsonConvert.SerializeObject(books);
             return View(books);
         }
-        public IActionResult GetPartialBookSearchView(string inputsearchtitlebooks, string inputsearchauthorbook)
+        public async Task<IActionResult> GetPartialBookSearchView(string inputsearchtitlebooks, string inputsearchauthorbook)
         {
-            var books = _bookQueries.GetSearchedBooks(inputsearchtitlebooks, inputsearchauthorbook);
+            var books = await _bookQueries.GetSearchedBooks(inputsearchtitlebooks, inputsearchauthorbook);
             TempData["currentbooks"] = JsonConvert.SerializeObject(books);
             ViewBag.Title = inputsearchtitlebooks;
             ViewBag.Author = inputsearchauthorbook;
@@ -73,9 +73,9 @@ namespace WymianaKsiazek.Controllers
             var books = _bookQueries.GetSearchedBooksByFilter(currentbooks, (long)Convert.ToDouble(inputcategoryid), Convert.ToInt32(inputtype));
             return PartialView("PartialSearchBookFilterView", books);
         }
-        public IActionResult ClearFilters()
+        public async Task<IActionResult> ClearFilters()
         {
-            var books = _bookQueries.GetBooks();
+            var books = await _bookQueries.GetBooks();
             TempData["currentbooks"] = JsonConvert.SerializeObject(books);
             return PartialView("PartialSearchBookFilterView", books);
         }
@@ -83,9 +83,9 @@ namespace WymianaKsiazek.Controllers
         {
             return PartialView("SearchError");
         }
-        public IActionResult book(long id)
+        public async Task<IActionResult> book(long id)
         {
-            var book = _bookQueries.GetBookById(id);
+            var book = await _bookQueries.GetBookById(id);
             if(book == null)
             {
                 return RedirectToAction("Error", "Home");
@@ -101,7 +101,7 @@ namespace WymianaKsiazek.Controllers
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                ViewBag.UserOpinion = _opinionQueries.GetUserOpinionAboutBook(id, userid);
+                ViewBag.UserOpinion = await _opinionQueries.GetUserOpinionAboutBook(id, userid);
             }
             return View(book);
         }
