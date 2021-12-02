@@ -12,7 +12,7 @@
         <div style="padding-top: 20px;">Użytkownik</div>
         <div id="user-profile-window">
             <div id="user-profile-image">
-                <img src="~/images/user.png" class="offerby-id-user-image">
+                <img src="~/images/@Model.User.Img" class="offerby-id-user-image">
             </div>
             <div id="user-profile-info-window">
                 <div id="user-profile-nickname">@Model.User.UserName</div>
@@ -85,7 +85,7 @@
             <div style="clear: both;"></div>
             <div id="offerbyid-info-city"><i class="fas fa-map-marker-alt"></i> @Model.Address.Name</div>
             <div id="offerbyid-info-description"><h2 style="margin-bottom: 10px;">Opis</h2>@Model.Content</div>
-            <div class="offer-report-header">Zgłoś <i class="far fa-flag"></i></div>
+            <a asp-action="Overture" asp-controller="Report" asp-route-id="@Model.Offer_Id"><div class="offer-report-header">Zgłoś <i class="far fa-flag"></i></div></a>
         </div>
     </div>
     <script>
@@ -163,7 +163,7 @@
                         <input type="hidden" id="arecommentsexist" value="yes" />
                         <div class="offerbyid-comment">
                             <div class="user-image-comment">
-                                <img src="~/images/user.png" class="usercommentimage">
+                                <img src="~/images/@comment.User.Img" class="usercommentimage">
                                 <div class="comment-user-nickname">@comment.User.UserName</div>
                             </div>
                             <div class="comment-content">
