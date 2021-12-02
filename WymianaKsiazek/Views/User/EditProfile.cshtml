@@ -1,0 +1,144 @@
+﻿
+<div class="editprofile">
+    <div class="loginheader"><h1>Zmiana nazwy użytkownika</h1></div>
+    <form id="usernameform" autocomplete="off" asp-action="ChangeUserName" asp-controller="Edit" method="post" role="form">
+        <div class="login-textfield">
+            <input type="text" id="oldusername" name="oldusername" required>
+            <span></span>
+            <label>Stara nazwa użtytkownika</label>
+        </div>
+        <div class="login-textfield">
+            <input type="text" id="newusername" name="newusername" required>
+            <span></span>
+            <label>Nowa nazwa użtytkownika<img src="images/ok.jpg" class="ok-image" id="password-ok-image"></label>
+        </div>
+        <span id="passworderror" class="errorfield"></span>
+        <input type="submit" value="Zmień nazwę" class="loginbuttoninput">
+    </form>
+</div>
+<div class="editprofile">
+    <div class="loginheader"><h1>Zmiana email</h1></div>
+    <form id="emailform" autocomplete="off" asp-action="Email" asp-controller="Edit" method="post" role="form">
+        <div class="login-textfield">
+            <input type="text" id="oldemail" name="oldemail" required>
+            <span></span>
+            <label>Stary email</label>
+        </div>
+        <div class="login-textfield">
+            <input type="text" id="newemail" name="newemail" required>
+            <span></span>
+            <label>Nowy email<img src="images/ok.jpg" class="ok-image" id="password-ok-image"></label>
+        </div>
+        <span id="passworderror" class="errorfield"></span>
+        <input type="submit" value="Zmień email" class="loginbuttoninput">
+    </form>
+</div>
+<div class="editprofile">
+    <div class="loginheader"><h1>Zmiana zdjęcia</h1></div>
+    <form id="imgform" autocomplete="off" asp-action="ChangeImage" asp-controller="Edit" method="post" role="form" enctype="multipart/form-data">
+        <div id="addoffer-image">
+            <div class="addoffer-header">Zdjęcie <i class="fas fa-images"></i></div>
+            <input type="file" id="newimg" name="newimg" accept="image/*" required>
+            <input type="submit" value="Zmień zdjęcie" class="loginbuttoninput">
+        </div>
+    </form>
+</div>
+@if(ViewBag.Error != null)
+{
+    <div class="errorfield">@ViewBag.Error</div>
+}
+<div style="height: 40px;"></div>
+<script>
+			const form1 = document.querySelector('#usernameform');
+			const form2 = document.querySelector('#emailform');
+			
+			const format = /[ `!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+			const emailformat = /[ `!#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+			const emailformat2 = /@@/;
+
+			let username = form1.elements.namedItem("newusername");
+			let email = form2.elements.namedItem("newemail");
+			
+			let isitvalidemail = true;
+			let isitvalidusername = true;
+			
+			username.addEventListener('input', function(e){
+				let usernamevalue = $('#newusername').val();
+				$('#username-ok-image').css("display", "none");
+					if(usernamevalue.length == 0)
+					{
+						$('#usernameerror').text("Pole nie może być puste");
+						isitvalidusername = true;
+					}
+					else if(usernamevalue.length < 5)
+					{
+						$('#usernameerror').text("Nazwa użytkownika musi zawierać conajmniej 5 znaków");
+						isitvalidusername  = true;
+					}
+					else if(usernamevalue.length > 15)
+					{
+						$('#usernameerror').text("Nazwa użytkownika może zawierać conajwyżej 15 znaków");
+						isitvalidusername  = true;
+					}
+					else if(format.test(usernamevalue))
+					{
+						$('#usernameerror').text("Nazwa użytkownika zawiera niedozwolone znaki");
+						isitvalidusername  = true;
+					}
+					else
+					{
+						$('#usernameerror').text("");
+						$('#username-ok-image').css("display", "inline");
+						isitvalidusername  = false;
+					}
+			});
+			
+			email.addEventListener('input', function(e){
+				let emailvalue = $('#newemail').val();
+				$('#email-ok-image').css("display", "none");
+					if(emailvalue.length == 0)
+					{
+						$('#emailerror').text("Pole nie może być puste");
+						isitvalidemail = true;
+					}
+					else if(emailvalue.length < 10)
+					{
+						$('#emailerror').text("Email musi zawierać conajmniej 10 znaków");
+						isitvalidemail = true;
+					}
+					else if(emailvalue.length > 30)
+					{
+						$('#emailerror').text("Email może zawierać conajwyżej 30 znaków");
+						isitvalidemail = true;
+					}
+					else if(emailformat.test(emailvalue))
+					{
+						$('#emailerror').text("Email zawiera niedozwolone znaki");
+						isitvalidemail = true;
+					}
+					else if(!emailformat2.test(emailvalue))
+					{
+						$('#emailerror').text("Email zawiera niepoprawny format");
+					}
+					else
+					{
+						$('#emailerror').text("");
+						$('#email-ok-image').css("display", "inline");
+						isitvalidemail = false;
+					}
+			});			
+			form1.addEventListener('submit', function(e){
+				e.preventDefault();
+				if(!isitvalidusername)
+				{
+					form1.submit();
+				}
+			});
+			form2.addEventListener('submit', function(e){
+				e.preventDefault();
+				if(!isitvalidemail)
+				{
+					form2.submit();
+				}
+			});
+</script>
