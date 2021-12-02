@@ -1,17 +1,25 @@
-﻿@using WymianaKsiazek.Models.MapperModels;
-@model MyProfileMP
+@using WymianaKsiazek.Models.MapperModels;
+@model dynamic
+@{ 
+    int index1 = 0;
+    int index2 = 0;
+}
 <div class="userwindow">
     <div class="userprofile-image">
-        <img src="~/images/user.png" height="300px" width="300px">
+        <img src="~/images/@Model.Profile.Img" height="300px" width="300px">
     </div>
     <div class="userprofile-info">
-        <div class="userprofile-data"><h2>Nazwa:</h2> @Model.UserName</div>
-        <div class="userprofile-data"><h2>Email:</h2> @Model.Email</div>
+        <div class="userprofile-data"><h2>Nazwa:</h2> @Model.Profile.UserName</div>
+        <div class="userprofile-data"><h2>Email:</h2> @Model.Profile.Email</div>
         <div class="myprofile-menu">
-            <a href="#"><div class="myprofilemenu-option">Zmień email</div></a>
-            <a href="#"><div class="myprofilemenu-option">Zmień nazwę użytkownika</div></a>
-            <a href="#"><div class="myprofilemenu-option">Zmień hasło</div></a>
-            <a href="#"><div class="myprofilemenu-option">Zmień zdjęcie profilowe</div></a>
+            <a asp-action="EditProfile" asp-controller="User"><div class="myprofilemenu-option">Edytuj profil</div></a>
+            <a asp-action="ChangePassword" asp-controller="User"><div class="myprofilemenu-option">Zmień hasło</div></a>
+            <div style="color: green; font-size: 14px">
+                @if(ViewBag.ChangeInfo != null)
+                {
+                    <p>@ViewBag.ChangeInfo</p>
+                }
+            </div>
         </div>
     </div>
     <div style="clear: both;"></div>
@@ -19,131 +27,66 @@
         <div class="myprofile-useroffers-header">
             <h2>Moje oferty</h2>
         </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
+        @foreach (var i in Model.Profile.Offers)
+        {
+            index1++;
+            <div class="offerwindow">
+                <div class="offerimage"><img class="offerpicture" src="~/images/@i.Image" alt="Image"></div>
+                <div class="offerbooktitle">@i.Book.Title</div>
+                <div class="offerbookauthor">@i.Book.Author</div>
+                <div class="offeruser">Dodano przez: <div class="offerusername">@i.User.UserName</div></div>
+                <div style="margin-top: 40px;"></div>
+                <div class="offercityanddate">@i.Address.Name - @i.DateFromat()</div>
+                <div style="clear: both;"></div>
+                @if (i.ForSale == true)
+                {
+                    <div class="offertype">Sprzedaż</div>
+                    <div class="offerprice">@i.Price zł</div>
+                }
+                else
+                {
+                    <div class="offertype">Wymiana</div>
+                }
+                <div style="clear: both;"></div>
+                <button class="offerpreviewbutton" onclick="location.href = '@Url.Action("offer", "Offer", new { id = i.Offer_Id})'">Zobacz ofertę</button>
+            </div>
+            if (index1 % 4 == 0)
+            {
+                <div style="clear: both;"></div>
+            }
+        }
         <div style="clear: both;"></div>
         <div class="myprofile-useroffers-header">
             <h2>Obserwowane oferty</h2>
         </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="offerwindow">
-            <div class="offerimage"><img class="offerpicture" src="~/images/35078001465KS.jpg" alt="Image"></div>
-            <div class="offerbooktitle">Syzyfowe Prace</div>
-            <div class="offerbookauthor">Stefan Żeromski</div>
-            <div class="offeruser">Dodano przez: <div class="offerusername">User123</div></div>
-            <div style="margin-top: 40px;"></div>
-            <div class="offercity">Toruń </div>
-            <div class="offerdate">wczoraj 11:56</div>
-            <div style="clear: both;"></div>
-            <div class="offertype">Sprzedaż</div>
-            <div class="offerprice">49,99zł</div>
-            <div class="offerfollowbutton"><i class="fas fa-heart"></i></div>
-            <div style="clear: both;"></div>
-            <button class="offerpreviewbutton">Zobacz ofertę</button>
-        </div>
-        <div class="seealloffersbutton"><button class="moreoffersbutton">Zobacz wszystkie</button></div>
+        @foreach (var i in Model.LikedOffers)
+        {
+            index2++;
+            <div class="offerwindow">
+                <div class="offerimage"><img class="offerpicture" src="~/images/@i.Image" alt="Image"></div>
+                <div class="offerbooktitle">@i.Book.Title</div>
+                <div class="offerbookauthor">@i.Book.Author</div>
+                <div class="offeruser">Dodano przez: <div class="offerusername">@i.User.UserName</div></div>
+                <div style="margin-top: 40px;"></div>
+                <div class="offercityanddate">@i.Address.Name - @i.DateFromat()</div>
+                <div style="clear: both;"></div>
+                @if (i.ForSale == true)
+                {
+                    <div class="offertype">Sprzedaż</div>
+                    <div class="offerprice">@i.Price zł</div>
+                }
+                else
+                {
+                    <div class="offertype">Wymiana</div>
+                }
+                <div style="clear: both;"></div>
+                <button class="offerpreviewbutton" onclick="location.href = '@Url.Action("offer", "Offer", new { id = i.Offer_Id})'">Zobacz ofertę</button>
+            </div>
+            if (index2 % 4 == 0)
+            {
+                <div style="clear: both;"></div>
+            }
+        }
         <div style="clear: both;"></div>
     </div>
     <div style="clear: both;"></div>
