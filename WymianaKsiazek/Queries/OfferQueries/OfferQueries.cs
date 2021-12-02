@@ -30,51 +30,51 @@ namespace WymianaKsiazek.Queries.OfferQueries
             _userManager = userManager;
         }
 
-        public List<OffersListMP> GetOffers()
+        public async Task<List<OffersListMP>> GetOffers()
         {
-            var offerentites = _context.Offer.Include(x => x.User).Include(x => x.Book).ThenInclude(x => x.Category).Include(x => x.Address).ToList();
+            var offerentites = await _context.Offer.Include(x => x.User).Include(x => x.Book).ThenInclude(x => x.Category).Include(x => x.Address).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offerentites);
         }
-        public List<OffersListMP> GetAllOffers()
+        public async Task<List<OffersListMP>> GetAllOffers()
         {
-            var offerentites = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).OrderByDescending(x => x.CreatedOn).ToList();
+            var offerentites = await _context.Offer.Include(x => x.User).
+                Include(x => x.Book).Include(x => x.Address).OrderByDescending(x => x.CreatedOn).Take(12).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offerentites);
         }
-        public List<OffersListMP> GetOffersWithBook(string title, string author)
+        public async Task<List<OffersListMP>> GetOffersWithBook(string title, string author)
         {
-            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address)
-                .Where(x => x.Book.Title == title && x.Book.Author == author).ToList();
+            var offers = await _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address)
+                .Where(x => x.Book.Title == title && x.Book.Author == author).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offers);
         }
-        public List<OffersListMP> GetCityOffers(long addressid)
+        public async Task<List<OffersListMP>> GetUserOffers(string userid)
         {
-            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.Address_Id == addressid).ToList();
+            var offers = await _context.Offer.Include(x => x.User).Include(x => x.Book).
+                Include(x => x.Address).Where(x => x.User_Id == userid).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offers);
         }
-        public List<OffersListMP> GetUserOffers(string userid)
+        public async Task<List<OffersListMP>> GetSearchedOffers(string bookname)
         {
-            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.User_Id == userid).ToList();
+            var bookid = await _context.Book.Where(x => EF.Functions.Like(x.Title, "%"+bookname+"%")).Select(x => x.Book_Id).FirstOrDefaultAsync();
+            var offers = await _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.Book_Id == bookid).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offers);
         }
-        public List<OffersListMP> GetSearchedOffers(string bookname)
+        public async Task<List<OffersListMP>> GetOffersByCategory(long id)
         {
-            var bookid = _context.Book.Where(x => EF.Functions.Like(x.Title, "%"+bookname+"%")).Select(x => x.Book_Id).FirstOrDefault();
-            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.Book_Id == bookid).ToList();
+            var offers = await _context.Offer.Include(x => x.User).Include(x => x.Book).
+                Include(x => x.Address).Where(x => x.Book.Category_Id == id).ToListAsync();
             return _mapper.Map<List<OffersListMP>>(offers);
         }
-        public List<OffersListMP> GetOffersByCategory(long id)
+        public async Task<OfferMP> GetOfferById(long offerid)
         {
-            var offers = _context.Offer.Include(x => x.User).Include(x => x.Book).Include(x => x.Address).Where(x => x.Book.Category_Id == id).ToList();
-            return _mapper.Map<List<OffersListMP>>(offers);
-        }
-        public OfferMP GetOfferById(long offerid)
-        {
-            var offer = _context.Offer.Include(x => x.User).ThenInclude(x => x.UserOpinion).Include(x => x.Book).Include(x => x.Address).Include(x => x.Comments).ThenInclude(x => x.User).Where(x => x.Offer_Id == offerid).FirstOrDefault();
+            var offer = await _context.Offer.Include(x => x.User).ThenInclude(x => x.UserOpinion).
+                Include(x => x.Book).Include(x => x.Address).Include(x => x.Comments).
+                ThenInclude(x => x.User).Where(x => x.Offer_Id == offerid).FirstOrDefaultAsync();
             return _mapper.Map<OfferMP>(offer);
         }
-        public List<OffersListMP> GetSearchesOffers(string titleauthor, string city)
+        public async Task<List<OffersListMP>> GetSearchesOffers(string titleauthor, string city)
         {
-            var alloffers = GetOffers();
+            var alloffers = await GetOffers();
             List<OffersListMP> offers = null;
             if((titleauthor == null || titleauthor == "") && (city == null || city == ""))
             {
@@ -184,14 +184,14 @@ namespace WymianaKsiazek.Queries.OfferQueries
             }
             return offers;
         }
-        public List<AddBookMP> GetBooksToAdd(string title)
+        public async Task<List<AddBookMP>> GetBooksToAdd(string title)
         {
             if (title == null || title == "")
             {
                 return null;
             }
             title = title.ToUpper();
-            var books = _context.Book.Include(x => x.Category).Where(x => x.Title.ToUpper().Contains(title)).ToList();
+            var books = await _context.Book.Include(x => x.Category).Where(x => x.Title.ToUpper().Contains(title)).ToListAsync();
             List<AddBookMP> list = new List<AddBookMP>();
             foreach(var i in books)
             {
@@ -279,6 +279,12 @@ namespace WymianaKsiazek.Queries.OfferQueries
                 transaction.Commit();
             }
             return 0;
+        }
+        public async Task<OfferReportMP> GetOfferReport(long id)
+        {
+            var offer = await _context.Offer.Include(x => x.Book).Include(x => x.User).
+                Where(x => x.Offer_Id == id).FirstOrDefaultAsync();
+            return _mapper.Map<OfferReportMP>(offer);
         }
     }
 }
