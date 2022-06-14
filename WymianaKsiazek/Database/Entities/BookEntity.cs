@@ -17,6 +17,9 @@ namespace WymianaKsiazek.Database.Entities
         public string Author { get; set; }
         [StringLength(13, ErrorMessage = "Kod ISBN musi zawierać 13 znaków!")]
         public string ISBN { get; set; }
+        [Required(ErrorMessage = "Opis wymagany!")]
+        [MaxLength(1000, ErrorMessage = "Opis zbyt długi!")]
+        public string Description { get; set; }
         public string Img { get; set; }
         public long Category_Id { get; set; }
         public virtual CategoryEntity Category { get; set; }
