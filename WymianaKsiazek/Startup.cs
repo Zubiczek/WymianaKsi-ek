@@ -34,6 +34,9 @@ using WymianaKsiazek.Queries.LikeQueries;
 using WymianaKsiazek.Queries.OpinionQueries;
 using WymianaKsiazek.Queries.EmailQueries;
 using WymianaKsiazek.Functions;
+using WymianaKsiazek.Queries.ReportQueries;
+using WymianaKsiazek.Queries.EditQueries;
+using System.Net;
 
 namespace WymianaKsiazek
 {
@@ -131,6 +134,30 @@ namespace WymianaKsiazek
 
             app.UseSession();
 
+            app.Use(async (context, next) =>
+            {
+                var token = context.Session.GetString("Token");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Request.Headers.Add("Authorization", "Bearer " + token);
+                }
+                await next();
+            });
+
+            app.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                if(response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect("/User/Login");
+                }
+                else
+                {
+                    response.Redirect("/Home/Error?statuscode="+response.StatusCode);
+                }
+            });
+
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -140,16 +167,6 @@ namespace WymianaKsiazek
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapHub<ChatHub>("/chatHub");
-            });
-
-            app.Use(async (context, next) =>
-            {
-                var token = context.Session.GetString("Token");
-                if (!string.IsNullOrEmpty(token))
-                {
-                    context.Request.Headers.Add("Authorization", "Bearer " + token);
-                }
-                await next();
             });
         }
     }
