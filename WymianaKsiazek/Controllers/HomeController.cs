@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,9 +15,11 @@ using WymianaKsiazek.Queries.BookQueries;
 using System.Dynamic;
 using WymianaKsiazek.Queries.UserQueries;
 using WymianaKsiazek.Functions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WymianaKsiazek.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -49,16 +51,16 @@ namespace WymianaKsiazek.Controllers
         public async Task<IActionResult> Category(long id)
         {
             var categoryname = await _bookQueries.GetCategoryName(id);
-            if(categoryname == null)
+            if (categoryname == null)
             {
-                return RedirectToAction("Error", "Home");
+                    return RedirectToAction("Error", "Home", new { statuscode = 404});
             }
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
             if (isuerloggedin)
             {
-                ViewBag.Username = HttpContext.Session.GetString("Username");
-                ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
+                    ViewBag.Username = HttpContext.Session.GetString("Username");
+                    ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
             ViewBag.CategoryName = categoryname;
             var books = await _bookQueries.GetBooksByCategory(id);
@@ -69,7 +71,7 @@ namespace WymianaKsiazek.Controllers
             return View(model);
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error(int? statuscode)
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
@@ -78,7 +80,26 @@ namespace WymianaKsiazek.Controllers
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            ViewBag.StatusCode = statuscode;
+            switch (statuscode)
+            {
+                case 404:
+                    ViewBag.ErrorMessage = "Strona nie została odnaleziona!";
+                    break;
+                case 500:
+                    ViewBag.ErrorMessage = "Błąd po stronie serwera!";
+                    break;
+                case 400:
+                    ViewBag.ErrorMessage = "Niepoprawne dane użytkownika";
+                    break;
+                case 401:
+                    ViewBag.ErrorMessage = "Błąd autoryzacji!";
+                    break;
+                default:
+                    ViewBag.ErrorMessage = "Wystąpił niezidentyfikowany problem!";
+                    break;
+            }
+            return View();
         }
     }
 }

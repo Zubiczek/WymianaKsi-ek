@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using WymianaKsiazek.Queries.UserQueries;
 
 namespace WymianaKsiazek.Controllers
 {
+    [Authorize]
     public class ReportController : Controller
     {
         private readonly ILoggedInUser _loggedUser;
@@ -29,36 +31,30 @@ namespace WymianaKsiazek.Controllers
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (!isuerloggedin)
-            {
-                return RedirectToAction("Login", "User");
-            }
+            if (!isuerloggedin) return RedirectToAction("Login", "User");
             else
             {
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
             var offer = await _offerQueries.GetOfferReport(id);
-            if (offer == null) return RedirectToAction("Error", "Home");
+            if (offer == null) return RedirectToAction("Error", "Home", new { statuscode = 404 });
             return View(offer);
         }
         public async Task<IActionResult> user(string id)
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (!isuerloggedin)
-            {
-                return RedirectToAction("Login", "User");
-            }
+            if (!isuerloggedin) return RedirectToAction("Login", "User");
             else
             {
                 string myid = _loggedUser.GetUserId();
-                if(myid == id) return RedirectToAction("Index", "Home");
+                if (myid == id) return RedirectToAction("Index", "Home");
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
             var user = await _userQueries.GetUserById(id);
-            if(user == null) return RedirectToAction("Error", "Home");
+            if (user == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             return View(user);
         }
         [HttpPost]
@@ -67,13 +63,11 @@ namespace WymianaKsiazek.Controllers
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             if (!isuerloggedin) return RedirectToAction("Login", "User");
             string userid = _loggedUser.GetUserId();
-            if (userid == null || userid == "") return RedirectToAction("Error", "Home");
+            if (userid == null || userid == "") return RedirectToAction("Error", "Home", new { statuscode = 401 });
             long offer_id = (long)Convert.ToDouble(offerid);
             long reason_id = (long)Convert.ToDouble(reasonid);
-            if(await _reportQueries.DoesOfferReportExist(offer_id, userid))
-            {
+            if (await _reportQueries.DoesOfferReportExist(offer_id, userid))
                 return Json(new { success = false, text = "Ta oferta została przez ciebie zgłoszona!" });
-            }
             else
             {
                 await _reportQueries.ReportOffer(offer_id, userid, reason_id);
@@ -86,11 +80,9 @@ namespace WymianaKsiazek.Controllers
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             if (!isuerloggedin) return RedirectToAction("Login", "User");
             string myid = _loggedUser.GetUserId();
-            if (userid == null || userid == "") return RedirectToAction("Error", "Home");
+            if (userid == null || userid == "") return RedirectToAction("Error", "Home", new { statuscode = 401 });
             if (await _reportQueries.DoesUserReportExist(userid, myid))
-            {
                 return Json(new { success = false, text = "Ten użytkownik został przez ciebie zgłoszony!" });
-            }
             else
             {
                 long reason_id = (long)Convert.ToDouble(reasonid);

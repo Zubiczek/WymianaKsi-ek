@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,9 +16,11 @@ using System.Diagnostics;
 using WymianaKsiazek.Queries.UserQueries;
 using WymianaKsiazek.Queries.LikeQueries;
 using WymianaKsiazek.Functions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WymianaKsiazek.Controllers
 {
+    [AllowAnonymous]
     public class OfferController : Controller
     {
         private readonly ILogger<OfferController> _logger;
@@ -36,10 +38,7 @@ namespace WymianaKsiazek.Controllers
         public async Task<IActionResult> offer(long id)
         {
             var offer = await _offerQueries.GetOfferById(id);
-            if (offer == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if (offer == null)  return RedirectToAction("Error", "Home", new { statuscode = 404 });
             var isuserloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuserloggedin;
             if (isuserloggedin)
@@ -47,10 +46,7 @@ namespace WymianaKsiazek.Controllers
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
                 string userid = _loggedUser.GetUserId();
-                if(userid == null || userid == "")
-                {
-                    return RedirectToAction("Error", "Home");
-                }
+                if (userid == null || userid == "") return RedirectToAction("Error", "Home", new { statuscode = 401 });
                 ViewBag.IsOfferLikedByUser = await _likeQueries.IsOfferFollowedByUser(id, userid);
             }
             return View(offer);
@@ -58,14 +54,8 @@ namespace WymianaKsiazek.Controllers
         public async Task<IActionResult> search(string title, string author)
         {
             List<OffersListMP> offers;
-            if (title != null && author != null)
-            {
-                offers = await _offerQueries.GetOffersWithBook(title, author);
-            }
-            else
-            {
-                offers = await _offerQueries.GetOffers();
-            }
+            if (title != null && author != null)    offers = await _offerQueries.GetOffersWithBook(title, author);
+            else offers = await _offerQueries.GetOffers();
             TempData["currentoffers"] = JsonConvert.SerializeObject(offers);
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
@@ -86,10 +76,7 @@ namespace WymianaKsiazek.Controllers
         }
         public IActionResult GetPartialSearchByFilterView(string inputcategoryid, string inputlowprice, string inputupprice, string inputtype)
         {
-            if (TempData["currentoffers"] == null)
-            {
-                return RedirectToAction("SearchError", "Offer");
-            }
+            if (TempData["currentoffers"] == null)  return RedirectToAction("SearchError", "Offer");
             var currentoffers = JsonConvert.DeserializeObject<List<OffersListMP>>(TempData["currentoffers"].ToString());
             TempData["currentoffers"] = JsonConvert.SerializeObject(currentoffers);
             var offers = _offerQueries.GetSearchedOffersByFilters(currentoffers, (long)Convert.ToDouble(inputcategoryid), Convert.ToUInt32(inputlowprice), Convert.ToUInt32(inputupprice), Convert.ToInt32(inputtype));
@@ -105,14 +92,12 @@ namespace WymianaKsiazek.Controllers
         {
             return PartialView("SearchError");
         }
+        [Authorize]
         public IActionResult AddOffer()
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if(!isuerloggedin)
-            {
-                return RedirectToAction("Login", "User");
-            }
+            if (!isuerloggedin) return RedirectToAction("Login", "User");
             else
             {
                 ViewBag.Username = HttpContext.Session.GetString("Username");
@@ -128,24 +113,19 @@ namespace WymianaKsiazek.Controllers
             var books = await _offerQueries.GetBooksToAdd(title);
             return Json(books);
         }
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddNewOffer(AddOffer model)
         {
             string userid = _loggedUser.GetUserId();
-            if(userid == null || userid == "")
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if (userid == null || userid == "") return RedirectToAction("Error", "Home", new { statuscode = 401 });
             int result = await _offerQueries.AddOffer(model, userid);
-            if(result == 1)
+            if (result == 1)
             {
                 TempData["addoffererror"] = "Opis zawiera niedozwolone słowa!";
                 return RedirectToAction("AddOffer", "Offer");
             }
-            else if(result == 2)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            else if (result == 2)   return RedirectToAction("Error", "Home", new { statuscode = 401 });
             else if (result == 3)
             {
                 TempData["addoffererror"] = "Osiągnięto limit ogłoszeń!";
