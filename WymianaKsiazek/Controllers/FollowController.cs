@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using WymianaKsiazek.Queries.LikeQueries;
 
 namespace WymianaKsiazek.Controllers
 {
+    [Authorize]
     public class FollowController : Controller
     {
         private readonly ILikeQueries _likeQueries;
@@ -21,17 +23,11 @@ namespace WymianaKsiazek.Controllers
         [HttpPost]
         public async Task<IActionResult> LikeOffer(long offerid)
         {
-            if (!_loggedUser.IsUserLoggedIn())
-            {
-                return Json(new { success = false, responseText = "Unauthorized!" });
-            }
+            if (!_loggedUser.IsUserLoggedIn()) return Json(new { success = false, responseText = "Unauthorized!" });
             else
             {
                 string userid = _loggedUser.GetUserId();
-                if (userid == null || userid == "")
-                {
-                    return Json(new { success = false, responseText = "Server Error!" });
-                }
+                if (userid == null || userid == "") return Json(new { success = false, responseText = "Server Error!" });
                 else
                 {
                     await _likeQueries.LikeOffer(userid, offerid);
@@ -42,17 +38,11 @@ namespace WymianaKsiazek.Controllers
         [HttpPost]
         public async Task<IActionResult> UnLikeOffer(long offerid)
         {
-            if (!_loggedUser.IsUserLoggedIn())
-            {
-                return Json(new { success = false, responseText = "Unauthorized!" });
-            }
+            if (!_loggedUser.IsUserLoggedIn())  return Json(new { success = false, responseText = "Unauthorized!" });
             else
             {
                 string userid = _loggedUser.GetUserId();
-                if (userid == null || userid == "")
-                {
-                    return Json(new { success = false, responseText = "Server Error!" });
-                }
+                if (userid == null || userid == "") return Json(new { success = false, responseText = "Server Error!" });
                 else
                 {
                     await _likeQueries.UnLikeOffer(userid, offerid);

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +29,7 @@ using WymianaKsiazek.Functions;
 
 namespace WymianaKsiazek.Controllers
 {
+    [AllowAnonymous]
     public class UserController : Controller
     {
         private readonly ILogger<UserController> _logger;
@@ -54,10 +55,7 @@ namespace WymianaKsiazek.Controllers
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            if (isuerloggedin)  return RedirectToAction("Index", "Home");
             ViewBag.ExistingUserError = TempData["existingusererror"];
             TempData["existingusererror"] = null;
             return View();
@@ -66,10 +64,7 @@ namespace WymianaKsiazek.Controllers
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            if (isuerloggedin)  return RedirectToAction("Index", "Home");
             ViewBag.LoginError = TempData["LoginError"];
             TempData["LoginError"] = null;
             return View();
@@ -97,29 +92,22 @@ namespace WymianaKsiazek.Controllers
             }
             return View();
         }
+        [Authorize]
+        [HttpGet]
         public async Task<IActionResult> MyProfile()
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (!isuerloggedin)
-            {
-                return RedirectToAction("Login", "User");
-            }
+            if (!isuerloggedin) return RedirectToAction("Login", "User");
             else
             {
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
             string userid = _loggedUser.GetUserId();
-            if (userid == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if (userid == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             var user = await _userQueries.MyProfile(userid);
-            if(user == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(user == null) return RedirectToAction("Error", "Home", new { statuscode = 404 });
             ViewBag.ChangeInfo = TempData["ChangeInfo"];
             var userlikedoffers = await _userQueries.GetUsersLikedOffers(userid);
             dynamic model = new ExpandoObject();
@@ -132,10 +120,7 @@ namespace WymianaKsiazek.Controllers
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (isuerloggedin)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            if (isuerloggedin) return RedirectToAction("Index", "Home");
             ViewBag.Error = TempData["ForgotPasswordError"];
             TempData["ForgotPasswordError"] = null;
             return View();
@@ -161,21 +146,16 @@ namespace WymianaKsiazek.Controllers
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
             }
-            if (userId == null || token == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if (userId == null || token == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             ViewBag.UserId = userId;
             return View();
         }
+        [Authorize]
         public IActionResult ChangePassword()
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (!isuerloggedin)
-            {
-                return RedirectToAction("Login", "User");
-            }
+            if (!isuerloggedin) return RedirectToAction("Login", "User");
             else
             {
                 ViewBag.Username = HttpContext.Session.GetString("Username");
@@ -188,10 +168,7 @@ namespace WymianaKsiazek.Controllers
         public async Task<IActionResult> Profile(string id)
         {
             var user = await _userQueries.GetUserProfile(id);
-            if(user == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(user == null) return RedirectToAction("Error", "Home", new { statuscode = 404 });
             bool isuserloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuserloggedin;
             if(isuserloggedin)
@@ -199,22 +176,17 @@ namespace WymianaKsiazek.Controllers
                 ViewBag.Username = HttpContext.Session.GetString("Username");
                 ViewBag.UserImg = HttpContext.Session.GetString("UserImage");
                 string userid = _loggedUser.GetUserId();
-                if(userid == null)
-                {
-                    return RedirectToAction("Error", "Home");
-                }
+                if(userid == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
                 ViewBag.UserOpinion = await _opinionQueries.GetUserOpinionAboutUser(id, userid);
             }
             return View(user);
         }
+        [Authorize]
         public IActionResult EditProfile()
         {
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;
-            if (!isuerloggedin)
-            {
-                return RedirectToAction("Login", "User");
-            }
+            if (!isuerloggedin) return RedirectToAction("Login", "User");
             else
             {
                 ViewBag.Username = HttpContext.Session.GetString("Username");
@@ -223,7 +195,6 @@ namespace WymianaKsiazek.Controllers
             }
             return View();
         }
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> SignUpUser(string emailinput, string usernameinput, string cityinput, string passwordinput)
         {
@@ -244,41 +215,24 @@ namespace WymianaKsiazek.Controllers
                 return RedirectToAction("Register", "User");
             }
             else if(result == 3)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+                return RedirectToAction("Error", "Home", new { statuscode = 500 });
             else if(result == 4)
             {
                 TempData["existingusererror"] = "Podane miasto nie istnieje!";
                 return RedirectToAction("Register", "User");
             }
             else
-            {
                 return RedirectToAction("EmailConfirmationPage", "User", new { email = emailinput});
-            }
         }
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
-            if (userId == null || token == null)
-            {
-                return RedirectToAction("Error", "Index");
-            }
+            if (userId == null || token == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return RedirectToAction("Error", "Index");
-            }
+            if (user == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             var result = await _userManager.ConfirmEmailAsync(user, token);
-            if (!result.Succeeded)
-            {
-                return RedirectToAction("Error", "Index");
-            }
-            else
-            {
-                return RedirectToAction("EmailConfirmedPage", "User");
-            }
+            if (!result.Succeeded) return RedirectToAction("Error", "Home", new { statuscode = 500 });
+            else return RedirectToAction("EmailConfirmedPage", "Home");
         }
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> LogIn(string email, string password)
         {
@@ -295,18 +249,13 @@ namespace WymianaKsiazek.Controllers
             HttpContext.Session.SetString("UserId", token.Id);
             return RedirectToAction("Index", "Home");
         }
+        [Authorize]
         public async Task<IActionResult> LogOut()
         {
             string token = HttpContext.Session.GetString("RefreshToken");
-            if(token == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(token == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             int result = await _userQueries.RemoveRefreshToken(token);
-            if(result == 1)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(result == 1) return RedirectToAction("Error", "Home", new { statuscode = 400 });
             else
             {
                 HttpContext.Session.Remove("Token");
@@ -335,34 +284,20 @@ namespace WymianaKsiazek.Controllers
         }
         public async Task<IActionResult> ResetChangePassword(string userid, string passwordinput)
         {
-            if (userid == null || passwordinput == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if (userid == null || passwordinput == null) return RedirectToAction("Error", "Home", new { statuscode = 400 });
             var user = await _userManager.FindByIdAsync(userid);
-            if(user == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(user == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             await _userQueries.ChangePassword(user, passwordinput);
             return RedirectToAction("Login", "User");
         }
+        [Authorize]
         public async Task<IActionResult> ChangeCurrentPassword(string oldpasswordinput, string passwordinput)
         {
-            if(oldpasswordinput == null || passwordinput == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(oldpasswordinput == null || passwordinput == null) return RedirectToAction("Error", "Home", new { statuscode = 400 });
             string userid = _loggedUser.GetUserId();
-            if(userid == null)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(userid == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             int result = await _userQueries.ChangeCurrentPassword(userid, oldpasswordinput, passwordinput);
-            if(result == 1)
-            {
-                return RedirectToAction("Error", "Home");
-            }
+            if(result == 1) return RedirectToAction("Error", "Home", new { statuscode = 500 });
             else if(result == 2)
             {
                 TempData["PasswordError"] = "Nieprawidłowe hasło!";

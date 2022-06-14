@@ -1,3 +1,4 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ using WymianaKsiazek.Queries.UserQueries;
 
 namespace WymianaKsiazek.Controllers
 {
+    [AllowAnonymous]
     public class BookController : Controller
     {
         private readonly ILogger<OfferController> _logger;
@@ -39,6 +41,10 @@ namespace WymianaKsiazek.Controllers
             else if(author != null)
             {
                 books = await _bookQueries.GetBooksByAuthor(author);
+            }
+            else if(title != null)
+            {
+                books = await _bookQueries.GetBooksByTitle(title);
             }
             else
             {
@@ -88,7 +94,7 @@ namespace WymianaKsiazek.Controllers
             var book = await _bookQueries.GetBookById(id);
             if(book == null)
             {
-                return RedirectToAction("Error", "Home");
+                return RedirectToAction("Error", "Home", new { statuscode = 404 });
             }
             bool isuerloggedin = _loggedUser.IsUserLoggedIn();
             ViewBag.IsUserLoggedIn = isuerloggedin;

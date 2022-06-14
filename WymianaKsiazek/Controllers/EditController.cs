@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,6 +14,7 @@ using WymianaKsiazek.Queries.UserQueries;
 
 namespace WymianaKsiazek.Controllers
 {
+    [Authorize]
     public class EditController : Controller
     {
         private readonly IEditQueries _editQueries;
@@ -34,9 +36,9 @@ namespace WymianaKsiazek.Controllers
         public async Task<IActionResult> Email(string oldemail, string newemail)
         {
             string userid = _loggedInUser.GetUserId();
-            if (userid == null || userid == "") return RedirectToAction("Error", "Home");
+            if (userid == null || userid == "") return RedirectToAction("Error", "Home", new { statuscode = 401 });
             var user = await _userQueries.GetUserEntity(userid);
-            if(user == null) return RedirectToAction("Error", "Home");
+            if (user == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             if (user.Email != oldemail)
             {
                 TempData["EditError"] = "Email nieprawidłowy!";
@@ -68,9 +70,9 @@ namespace WymianaKsiazek.Controllers
             bool isuerloggedin = _loggedInUser.IsUserLoggedIn();
             if (!isuerloggedin) return RedirectToAction("Index", "Home");
             string id = _loggedInUser.GetUserId();
-            if(token == null || userid == null) return RedirectToAction("Error", "Home");
+            if (token == null || userid == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             var user = await _userManager.FindByIdAsync(userid);
-            if(user.Id != id) return RedirectToAction("Error", "Home");
+            if (user.Id != id) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             await _editQueries.ChangeEmail(user, newemail);
             TempData["ChangeInfo"] = "Email zmieniony pomyślnie!";
             return RedirectToAction("MyProfile", "User");
@@ -81,11 +83,11 @@ namespace WymianaKsiazek.Controllers
             bool isuerloggedin = _loggedInUser.IsUserLoggedIn();
             if (!isuerloggedin) return RedirectToAction("Login", "User");
             var user = await _userManager.FindByIdAsync(_loggedInUser.GetUserId());
-            if(user == null) return RedirectToAction("Error", "Home");
+            if (user == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             if (user.UserName != oldusername)
             {
                 TempData["EditError"] = "Nazwa użytkownika nieprawidłowa!";
-                return RedirectToAction("EditProfile", "User");
+                    return RedirectToAction("EditProfile", "User");
             }
             await _editQueries.ChangeUsername(user, newusername);
             TempData["ChangeInfo"] = "Nazwa użytkownika zmieniona pomyślnie!";
@@ -98,9 +100,9 @@ namespace WymianaKsiazek.Controllers
             bool isuerloggedin = _loggedInUser.IsUserLoggedIn();
             if (!isuerloggedin) return RedirectToAction("Login", "User");
             var user = await _userManager.FindByIdAsync(_loggedInUser.GetUserId());
-            if (user == null) return RedirectToAction("Error", "Home");
+            if (user == null) return RedirectToAction("Error", "Home", new { statuscode = 401 });
             string imagename = _saveImg.SaveImage(newimg);
-            if(imagename == null) return RedirectToAction("Error", "Home");
+            if (imagename == null) return RedirectToAction("Error", "Home", new { statuscode = 400 });
             await _editQueries.ChangeImage(user, imagename);
             TempData["ChangeInfo"] = "Zdjęcie zmieniono pomyślnie!";
             HttpContext.Session.SetString("UserImage", imagename);
