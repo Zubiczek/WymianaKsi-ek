@@ -79,7 +79,6 @@ namespace WymianaKsiazek.Queries.OfferQueries
             if((titleauthor == null || titleauthor == "") && (city == null || city == ""))
             {
                 return alloffers;
-
             }
             else if(titleauthor == null || titleauthor == "")
             {
@@ -90,6 +89,10 @@ namespace WymianaKsiazek.Queries.OfferQueries
                 titleauthor = titleauthor.ToUpper();
                 var strings = titleauthor.Split(' ');
                 int index = 1;
+                if (city != null && city != "")
+                {
+                    alloffers = (from i in alloffers where i.Address.Name == city select i).ToList();
+                }
                 if (strings.Length > 1)
                 {
                     while (index < strings.Length)
@@ -113,7 +116,11 @@ namespace WymianaKsiazek.Queries.OfferQueries
                             }
                         }
                         index++;
-                        if (city == null || city == "")
+                        offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word1) && i.Book.Author.ToUpper().Contains(word2) select i).ToList();
+                        if (offers.Count > 0) return offers;
+                        offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word2) && i.Book.Author.ToUpper().Contains(word1) select i).ToList();
+                        if (offers.Count > 0) return offers;
+                        /*if (city == null || city == "")
                         {
                             offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(word1) && i.Book.Author.ToUpper().Contains(word2) select i).ToList();
                             if (offers.Count > 0)
@@ -138,21 +145,15 @@ namespace WymianaKsiazek.Queries.OfferQueries
                             {
                                 return offers;
                             }
-                        }
+                        }*/
                     }
                 }
                 offers = (from i in alloffers where i.Book.Title.ToUpper().Contains(titleauthor) select i).ToList();
-                if (offers.Count > 0)
-                {
-                    return offers;
-                }
+                if (offers.Count > 0) return offers;
                 else
                 {
                     offers = (from i in alloffers where i.Book.Author.ToUpper().Contains(titleauthor) select i).ToList();
-                    if (offers.Count > 0)
-                    {
-                        return offers;
-                    }
+                    if (offers.Count > 0) return offers;
                 }
             }
             return offers;
@@ -163,24 +164,24 @@ namespace WymianaKsiazek.Queries.OfferQueries
             {
                 offers = (from i in offers where i.Book.Category.Category_Id == categoryid select i).ToList();
             }
-            if(lowprice > 0)
+            if (type != 2)
             {
-                offers = (from i in offers where i.Price >= lowprice select i).ToList();
-            }
-            if (upprice > 0)
-            {
-                offers = (from i in offers where i.Price <= upprice select i).ToList();
-            }
-            if(type != 2)
-            {
-                if(type == 1)
+                if (type == 1)
                 {
                     offers = (from i in offers where i.ForSale == true select i).ToList();
                 }
-                else if(type == 0)
+                else if (type == 0)
                 {
                     offers = (from i in offers where i.ForSale == false select i).ToList();
                 }
+            }
+            if (lowprice > 0 && type != 0)
+            {
+                offers = (from i in offers where i.Price >= lowprice select i).ToList();
+            }
+            if (upprice > 0 && type != 0)
+            {
+                offers = (from i in offers where i.Price <= upprice select i).ToList();
             }
             return offers;
         }
